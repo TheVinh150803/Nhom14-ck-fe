@@ -1,15 +1,31 @@
 import React, { Component } from "react";
-import { Box, Container, Divider, List, ListItem, ListItemIcon, ListItemText, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Paper } from "@mui/material";
+import {
+  Box,
+  Container,
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  Paper,
+  Button,
+} from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
-import { Button } from "@mui/material";
+import withNavigation from "./withNavigation";
 
-
-class ThoiKhoaBieu extends Component {
+class QuetMaQR extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -30,8 +46,23 @@ class ThoiKhoaBieu extends Component {
     };
   }
 
-  handleSemesterChange = (event) => {
-    this.setState({ selectedSemester: event.target.value });
+  handleMenuClick = (text) => {
+    switch (text) {
+      case "Quét Mã điểm danh":
+        this.props.navigate("/quetmaqr");
+        break;
+      case "Thông tin cá nhân":
+        this.props.navigate("/thongtinSV");
+        break;
+      case "Thời khóa biểu":
+        this.props.navigate("/thoikhoabieu");
+        break;
+      case "Kết quả điểm danh":
+        this.props.navigate("/ketquadiemdanh");
+        break;
+      default:
+        console.log("Không tìm thấy trang!");
+    }
   };
 
   render() {
@@ -50,7 +81,11 @@ class ThoiKhoaBieu extends Component {
           <Box component="img" src={logo} width="100%" mb={4} />
           <List>
             {menuItems.map((item, index) => (
-              <ListItem button key={index}>
+              <ListItem
+                button
+                key={index}
+                onClick={() => this.handleMenuClick(item.text)} // 🔥 Đã thêm sự kiện onClick
+              >
                 <ListItemIcon sx={{ color: "white" }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} sx={{ color: "white" }} />
               </ListItem>
@@ -61,18 +96,17 @@ class ThoiKhoaBieu extends Component {
         {/* Main Content */}
         <Container sx={{ flex: 1, p: 4 }}>
           <Typography variant="h4" textAlign="center" mb={2}>
-           Quét Mã Điểm Danh
+            Quét Mã Điểm Danh
           </Typography>
           <Divider sx={{ mb: 3 }} />
 
           <Box display="flex" justifyContent="center" mt={3}>
             <Button variant="contained" color="secondary">Bật Camera</Button>
           </Box>
-       
         </Container>
       </Box>
     );
   }
 }
 
-export default ThoiKhoaBieu;
+export default withNavigation(QuetMaQR);

@@ -6,6 +6,7 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
+import withNavigation from "./withNavigation";
 
 class ThoiKhoaBieu extends Component {
   constructor(props) {
@@ -32,13 +33,26 @@ class ThoiKhoaBieu extends Component {
     this.setState({ selectedSemester: event.target.value });
   };
 
+  handleMenuClick = (text) => {
+    const routes = {
+      "Thông tin cá nhân": "/thongtinSV",
+      "Thời khóa biểu": "/thoikhoabieu",
+      "Kết quả điểm danh": "/ketquadiemdanh",
+      "Quét Mã điểm danh": "/quetmaqr",
+      "QR điểm danh": "/qrdiemdanh",
+    };
+    if (routes[text]) {
+      this.props.navigate(routes[text]);
+    }
+  };
+
   render() {
     const menuItems = [
       { text: "Thông tin cá nhân", icon: <PersonIcon fontSize="large" /> },
       { text: "Thời khóa biểu", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
-       { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
+      { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
     ];
 
     return (
@@ -48,7 +62,7 @@ class ThoiKhoaBieu extends Component {
           <Box component="img" src={logo} width="100%" mb={4} />
           <List>
             {menuItems.map((item, index) => (
-              <ListItem button key={index}>
+              <ListItem button key={index} onClick={() => this.handleMenuClick(item.text)}>
                 <ListItemIcon sx={{ color: "white" }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} sx={{ color: "white" }} />
               </ListItem>
@@ -65,11 +79,7 @@ class ThoiKhoaBieu extends Component {
 
           {/* Dropdown chọn học kỳ */}
           <Box mb={3}>
-            <Select
-              value={this.state.selectedSemester}
-              onChange={this.handleSemesterChange}
-              fullWidth
-            >
+            <Select value={this.state.selectedSemester} onChange={this.handleSemesterChange} fullWidth>
               <MenuItem value="HK1">TKB học kỳ cá nhân</MenuItem>
               <MenuItem value="HK2">Học kỳ 2</MenuItem>
             </Select>
@@ -114,4 +124,4 @@ class ThoiKhoaBieu extends Component {
   }
 }
 
-export default ThoiKhoaBieu;
+export default withNavigation(ThoiKhoaBieu);

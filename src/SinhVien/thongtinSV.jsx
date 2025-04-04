@@ -5,12 +5,12 @@ import PersonIcon from "@mui/icons-material/Person";
 import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
+import withNavigation from "./withNavigation";
 import {
   Box,
   Button,
   Container,
   Divider,
-  Grid,
   List,
   ListItem,
   ListItemIcon,
@@ -39,6 +39,23 @@ class ThongTinCaNhan extends Component {
     this.setState({ [event.target.id]: event.target.value });
   };
 
+  // Hàm xử lý sự kiện khi người dùng nhấn vào menu
+  handleMenuClick = (text) => {
+    if (text === "Quét Mã điểm danh") {
+      console.log("Quét Mã điểm danh clicked");
+      this.props.navigate("/quetmaqr"); // Điều hướng tới trang Quét Mã điểm danh
+    } else if (text === "Thông tin cá nhân") {
+      console.log("Thông tin cá nhân clicked");
+      this.props.navigate("/thongtinSV"); // Điều hướng tới trang Thông tin cá nhân
+    } else if (text === "Thời khóa biểu") {
+      console.log("Thời khóa biểu clicked");
+      this.props.navigate("/thoikhoabieu"); // Điều hướng tới trang Thời khóa biểu
+    } else if (text === "Kết quả điểm danh") {
+      console.log("Kết quả điểm danh clicked");
+      this.props.navigate("/ketquadiemdanh"); // Điều hướng tới trang Kết quả điểm danh
+    }
+  };
+
   render() {
     const formFields = [
       { id: "studentId", label: "Mã Sinh Viên:" },
@@ -57,7 +74,6 @@ class ThongTinCaNhan extends Component {
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
       { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
-
     ];
 
     return (
@@ -67,7 +83,7 @@ class ThongTinCaNhan extends Component {
           <Box component="img" src={logo} width="100%" mb={4} />
           <List>
             {menuItems.map((item, index) => (
-              <ListItem button key={index}>
+              <ListItem button key={index} onClick={() => this.handleMenuClick(item.text)}>
                 <ListItemIcon sx={{ color: "white" }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} sx={{ color: "white" }} />
               </ListItem>
@@ -103,4 +119,4 @@ class ThongTinCaNhan extends Component {
   }
 }
 
-export default ThongTinCaNhan;
+export default withNavigation(ThongTinCaNhan);
