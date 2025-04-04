@@ -13,14 +13,18 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/Login" element={<Login />} />
+        {/* SinhVien */}
+        <Route path="/" element={<Login />} />
         <Route path="/ThongTinSV" element={<ThongTinSV />} />
         <Route path="/ThoiKhoaBieu" element={<ThoiKhoaBieu />} />
         <Route path="/QuetMaQR" element={<ScanQR />} />
         <Route path="/ketquadiemdanh" element={<KetQuaDiemDanhSV />} /> {/* SV xem */}
         <Route path="/quetmaqr" element={<QuetMaQR />} />
+         {/* SinhVien */}
+         
       </Routes>
     </BrowserRouter>
+    
   );
 }
 

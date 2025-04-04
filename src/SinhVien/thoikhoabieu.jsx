@@ -34,15 +34,19 @@ class ThoiKhoaBieu extends Component {
   };
 
   handleMenuClick = (text) => {
-    const routes = {
-      "Thông tin cá nhân": "/thongtinSV",
-      "Thời khóa biểu": "/thoikhoabieu",
-      "Kết quả điểm danh": "/ketquadiemdanh",
-      "Quét Mã điểm danh": "/quetmaqr",
-      "QR điểm danh": "/qrdiemdanh",
-    };
-    if (routes[text]) {
-      this.props.navigate(routes[text]);
+    if (text === "Quét Mã điểm danh") {
+      console.log("Quét Mã điểm danh clicked");
+      this.props.navigate("/quetmaqr");
+    } else if (text === "Thông tin cá nhân") {
+      console.log("Thông tin cá nhân clicked");
+      this.props.navigate("/thongtinSV");
+    } else if (text === "Thời khóa biểu") {
+      console.log("Thời khóa biểu clicked");
+      this.props.navigate("/thoikhoabieu");
+    }
+    else if (text === "Kết quả điểm danh") {
+      console.log("Kết quả điểm danh clicked");
+      this.props.navigate("/ketquadiemdanh");
     }
   };
 

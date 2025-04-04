@@ -47,21 +47,19 @@ class QuetMaQR extends Component {
   }
 
   handleMenuClick = (text) => {
-    switch (text) {
-      case "Quét Mã điểm danh":
-        this.props.navigate("/quetmaqr");
-        break;
-      case "Thông tin cá nhân":
-        this.props.navigate("/thongtinSV");
-        break;
-      case "Thời khóa biểu":
-        this.props.navigate("/thoikhoabieu");
-        break;
-      case "Kết quả điểm danh":
-        this.props.navigate("/ketquadiemdanh");
-        break;
-      default:
-        console.log("Không tìm thấy trang!");
+    if (text === "Quét Mã điểm danh") {
+      console.log("Quét Mã điểm danh clicked");
+      this.props.navigate("/quetmaqr");
+    } else if (text === "Thông tin cá nhân") {
+      console.log("Thông tin cá nhân clicked");
+      this.props.navigate("/thongtinSV");
+    } else if (text === "Thời khóa biểu") {
+      console.log("Thời khóa biểu clicked");
+      this.props.navigate("/thoikhoabieu");
+    }
+    else if (text === "Kết quả điểm danh") {
+      console.log("Kết quả điểm danh clicked");
+      this.props.navigate("/ketquadiemdanh");
     }
   };
 
