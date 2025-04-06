@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import axios from "axios";
 import {
   Box,
   Button,
@@ -11,23 +12,21 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate hook
 import schoolImage from "../img/anhtruong.jpg";
 import logo from "../img/logo.jpg";
 
-// Hàm này sẽ chuyển hướng (navigate) khi nhấn vào nút
+
+// Tạo nút chuyển hướng
 const NavigateButtons = () => {
   const navigate = useNavigate();
 
+
   return (
     <Box sx={{ display: "flex", gap: "10px", marginTop: "15px" }}>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => navigate("/")} // Chuyển đến trang login sinh viên
-      >
+      <Button variant="contained" onClick={() => navigate("/")}>
         Sinh Viên
       </Button>
       <Button
         variant="contained"
         color="secondary"
-        onClick={() => navigate("/LoginGiangVien")} 
+        onClick={() => navigate("/LoginGiangVien")}
       >
         Giảng Viên
       </Button>
@@ -35,38 +34,64 @@ const NavigateButtons = () => {
   );
 };
 
-class LecturerLogin extends Component {
+
+
+
+function withRouter(Component) {
+  return function (props) {
+    const navigate = useNavigate();
+    return <Component {...props} navigate={navigate} />;
+  };
+}
+
+
+class LoginGiangVien extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      username: "",
-      password: "",
-      error: "", // Dùng để hiển thị thông báo lỗi
+      maGV: "", // Thêm thuộc tính cho username
+      password: "",  // Thêm thuộc tính cho password
     };
   }
 
+
   handleUsernameChange = (event) => {
-    this.setState({ username: event.target.value });
+    this.setState({ maGV: event.target.value });
   };
+
 
   handlePasswordChange = (event) => {
     this.setState({ password: event.target.value });
   };
 
-  handleLogin = () => {
-    const { username, password } = this.state;
-    if (username === "" || password === "") {
-      this.setState({ error: "Vui lòng điền đủ thông tin!" });
-    } else {
-      // Thực hiện logic đăng nhập cho giảng viên tại đây
-      console.log("Login attempt with:", username, password);
-      this.setState({ error: "" });
-      // Chuyển hướng sau khi đăng nhập thành công (nếu có)
+
+  handleLogin = async () => {
+    const { maGV, password } = this.state;
+
+
+    try {
+      const response = await axios.post("http://localhost:8000/api/dangnhapGV", {
+        maGV,
+        password,
+      });
+      console.log(response);
+      const data = response.data;
+      if (data.canlogin) {
+        alert("Đăng nhập thành công!");
+        this.props.navigate("/thongtinGV"); // Chuyển hướng khi đăng nhập thành công
+      } else {
+        alert("Sai tên đăng nhập hoặc mật khẩu");
+      }
+    } catch (error) {
+      console.error("Lỗi đăng nhập", error);
+      alert("Lỗi hệ thống hoặc kết nối");
     }
   };
 
+
   render() {
-    const { username, password, error } = this.state;
+    const { maGV, password } = this.state;
+
 
     return (
       <Container
@@ -89,7 +114,7 @@ class LecturerLogin extends Component {
             bgcolor: "white",
           }}
         >
-          {/* Lecturer Login Section */}
+          {/* Phần login */}
           <Box
             sx={{
               width: "50%",
@@ -100,30 +125,22 @@ class LecturerLogin extends Component {
               padding: "30px",
             }}
           >
-            {/* Logo */}
-            <Box
-              component="img"
-              src={logo}
-              alt="Logo"
-              sx={{ width: "80px", height: "80px", marginBottom: "10px" }}
-            />
-
-            {/* Title */}
+            <Box component="img" src={logo} alt="Logo" sx={{ width: "80px", height: "80px", mb: 2 }} />
             <Typography variant="h5" fontWeight="bold" mb={2}>
               LOGIN GIẢNG VIÊN
             </Typography>
 
-            {/* Username */}
+
             <TextField
               fullWidth
               label="Username"
               variant="outlined"
-              value={username}
+              value={maGV}
               onChange={this.handleUsernameChange}
               sx={{ marginBottom: "15px" }}
             />
 
-            {/* Password */}
+
             <TextField
               fullWidth
               type="password"
@@ -134,7 +151,7 @@ class LecturerLogin extends Component {
               sx={{ marginBottom: "20px" }}
             />
 
-            {/* Login Button */}
+
             <Button
               variant="contained"
               onClick={this.handleLogin}
@@ -143,25 +160,14 @@ class LecturerLogin extends Component {
               LOGIN Giảng Viên
             </Button>
 
-            {/* Display error message */}
-            {error && (
-              <Typography color="error" sx={{ marginTop: "10px" }}>
-                {error}
-              </Typography>
-            )}
 
-            {/* Switch between Sinh Viên / Giảng Viên */}
             <NavigateButtons />
           </Box>
 
-          {/* Divider between the login form and the image */}
-          <Divider
-            orientation="vertical"
-            flexItem
-            sx={{ width: "3px", bgcolor: "gray" }}
-          />
 
-          {/* Image section */}
+          <Divider orientation="vertical" flexItem sx={{ width: "3px", bgcolor: "gray" }} />
+
+
           <Box
             sx={{
               width: "50%",
@@ -176,4 +182,5 @@ class LecturerLogin extends Component {
   }
 }
 
-export default LecturerLogin;
+
+export default withRouter(LoginGiangVien);

@@ -1,32 +1,44 @@
 import React, { Component } from "react";
-import { Box, Button, Container, Divider, TextField, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom"; // Import useNavigate hook
+import axios from "axios";
+import {
+  Box,
+  Button,
+  Container,
+  Divider,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import schoolImage from "../img/anhtruong.jpg";
 import logo from "../img/logo.jpg";
 
-// Hàm này sẽ chuyển hướng (navigate) khi nhấn vào nút
+
+// Tạo nút chuyển hướng
 const NavigateButtons = () => {
   const navigate = useNavigate();
 
+
   return (
     <Box sx={{ display: "flex", gap: "10px", marginTop: "15px" }}>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => navigate("/LoginSV")} // Chuyển đến trang login sinh viên
-      >
+      <Button variant="contained" onClick={() => navigate("/")}>
         Sinh Viên
       </Button>
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={() => navigate("/LoginGiangVien")} 
-      >
+      <Button variant="contained" color="secondary" onClick={() => navigate("/LoginGiangVien")}>
         Giảng Viên
       </Button>
     </Box>
   );
 };
+
+
+// Dùng HOC để dùng useNavigate trong class
+function withRouter(Component) {
+  return function (props) {
+    const navigate = useNavigate();
+    return <Component {...props} navigate={navigate} />;
+  };
+}
+
 
 class LoginSV extends Component {
   constructor(props) {
@@ -37,22 +49,43 @@ class LoginSV extends Component {
     };
   }
 
+
   handleMSSVChange = (event) => {
     this.setState({ mssv: event.target.value });
   };
+
 
   handlePasswordChange = (event) => {
     this.setState({ password: event.target.value });
   };
 
-  handleLogin = () => {
+
+  handleLogin = async () => {
     const { mssv, password } = this.state;
-    console.log("Login attempt with:", mssv, password);
-    // Thêm logic đăng nhập ở đây nếu cần
+
+
+    try {
+      const response = await axios.post("http://localhost:8000/api/dangnhap", {
+        mssv,
+        password,
+      });
+      const data = response.data;
+      if (data.canlogin) {
+        alert("Đăng nhập thành công: ");
+        this.props.navigate("/thongtinSV");
+      } else {
+        alert("Sai MSSV hoặc mật khẩu");
+      }
+    } catch (error) {
+      console.error("Sai MSSV", error);
+      alert("Lỗi hệ thống hoặc kết nối");
+    }
   };
+
 
   render() {
     const { mssv, password } = this.state;
+
 
     return (
       <Container
@@ -75,7 +108,7 @@ class LoginSV extends Component {
             bgcolor: "white",
           }}
         >
-          {/* Phần Login */}
+          {/* Phần login */}
           <Box
             sx={{
               width: "50%",
@@ -86,20 +119,12 @@ class LoginSV extends Component {
               padding: "30px",
             }}
           >
-            {/* Logo */}
-            <Box
-              component="img"
-              src={logo}
-              alt="Logo"
-              sx={{ width: "80px", height: "80px", marginBottom: "10px" }}
-            />
-
-            {/* Tiêu đề */}
+            <Box component="img" src={logo} alt="Logo" sx={{ width: "80px", height: "80px", mb: 2 }} />
             <Typography variant="h5" fontWeight="bold" mb={2}>
               LOGIN SINH VIÊN
             </Typography>
 
-            {/* MSSV */}
+
             <TextField
               fullWidth
               label="MSSV"
@@ -109,7 +134,7 @@ class LoginSV extends Component {
               sx={{ marginBottom: "15px" }}
             />
 
-            {/* Password */}
+
             <TextField
               fullWidth
               type="password"
@@ -120,7 +145,7 @@ class LoginSV extends Component {
               sx={{ marginBottom: "20px" }}
             />
 
-            {/* Nút đăng nhập */}
+
             <Button
               variant="contained"
               onClick={this.handleLogin}
@@ -129,18 +154,14 @@ class LoginSV extends Component {
               LOGIN Sinh Viên
             </Button>
 
-            {/* Hai nút Sinh Viên / Giảng Viên */}
+
             <NavigateButtons />
           </Box>
 
-          {/* Đường phân cách */}
-          <Divider
-            orientation="vertical"
-            flexItem
-            sx={{ width: "3px", bgcolor: "gray" }}
-          />
 
-          {/* Phần hình ảnh */}
+          <Divider orientation="vertical" flexItem sx={{ width: "3px", bgcolor: "gray" }} />
+
+
           <Box
             sx={{
               width: "50%",
@@ -155,4 +176,10 @@ class LoginSV extends Component {
   }
 }
 
-export default LoginSV;
+
+export default withRouter(LoginSV);
+
+
+
+
+
