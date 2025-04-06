@@ -1,5 +1,12 @@
 import React, { Component } from "react";
-import { Box, Button, Container, Divider, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Container,
+  Divider,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom"; // Import useNavigate hook
 import schoolImage from "../img/anhtruong.jpg";
 import logo from "../img/logo.jpg";
@@ -13,7 +20,7 @@ const NavigateButtons = () => {
       <Button
         variant="contained"
         color="primary"
-        onClick={() => navigate("/LoginSV")} // Chuyển đến trang login sinh viên
+        onClick={() => navigate("/")} // Chuyển đến trang login sinh viên
       >
         Sinh Viên
       </Button>
@@ -28,17 +35,18 @@ const NavigateButtons = () => {
   );
 };
 
-class LoginSV extends Component {
+class LecturerLogin extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      mssv: "",
+      username: "",
       password: "",
+      error: "", // Dùng để hiển thị thông báo lỗi
     };
   }
 
-  handleMSSVChange = (event) => {
-    this.setState({ mssv: event.target.value });
+  handleUsernameChange = (event) => {
+    this.setState({ username: event.target.value });
   };
 
   handlePasswordChange = (event) => {
@@ -46,13 +54,19 @@ class LoginSV extends Component {
   };
 
   handleLogin = () => {
-    const { mssv, password } = this.state;
-    console.log("Login attempt with:", mssv, password);
-    // Thêm logic đăng nhập ở đây nếu cần
+    const { username, password } = this.state;
+    if (username === "" || password === "") {
+      this.setState({ error: "Vui lòng điền đủ thông tin!" });
+    } else {
+      // Thực hiện logic đăng nhập cho giảng viên tại đây
+      console.log("Login attempt with:", username, password);
+      this.setState({ error: "" });
+      // Chuyển hướng sau khi đăng nhập thành công (nếu có)
+    }
   };
 
   render() {
-    const { mssv, password } = this.state;
+    const { username, password, error } = this.state;
 
     return (
       <Container
@@ -75,7 +89,7 @@ class LoginSV extends Component {
             bgcolor: "white",
           }}
         >
-          {/* Phần Login */}
+          {/* Lecturer Login Section */}
           <Box
             sx={{
               width: "50%",
@@ -94,18 +108,18 @@ class LoginSV extends Component {
               sx={{ width: "80px", height: "80px", marginBottom: "10px" }}
             />
 
-            {/* Tiêu đề */}
+            {/* Title */}
             <Typography variant="h5" fontWeight="bold" mb={2}>
-              LOGIN SINH VIÊN
+              LOGIN GIẢNG VIÊN
             </Typography>
 
-            {/* MSSV */}
+            {/* Username */}
             <TextField
               fullWidth
-              label="MSSV"
+              label="Username"
               variant="outlined"
-              value={mssv}
-              onChange={this.handleMSSVChange}
+              value={username}
+              onChange={this.handleUsernameChange}
               sx={{ marginBottom: "15px" }}
             />
 
@@ -120,27 +134,34 @@ class LoginSV extends Component {
               sx={{ marginBottom: "20px" }}
             />
 
-            {/* Nút đăng nhập */}
+            {/* Login Button */}
             <Button
               variant="contained"
               onClick={this.handleLogin}
               sx={{ width: "100%", padding: "10px", fontSize: "16px" }}
             >
-              LOGIN Sinh Viên
+              LOGIN Giảng Viên
             </Button>
 
-            {/* Hai nút Sinh Viên / Giảng Viên */}
+            {/* Display error message */}
+            {error && (
+              <Typography color="error" sx={{ marginTop: "10px" }}>
+                {error}
+              </Typography>
+            )}
+
+            {/* Switch between Sinh Viên / Giảng Viên */}
             <NavigateButtons />
           </Box>
 
-          {/* Đường phân cách */}
+          {/* Divider between the login form and the image */}
           <Divider
             orientation="vertical"
             flexItem
             sx={{ width: "3px", bgcolor: "gray" }}
           />
 
-          {/* Phần hình ảnh */}
+          {/* Image section */}
           <Box
             sx={{
               width: "50%",
@@ -155,4 +176,4 @@ class LoginSV extends Component {
   }
 }
 
-export default LoginSV;
+export default LecturerLogin;
