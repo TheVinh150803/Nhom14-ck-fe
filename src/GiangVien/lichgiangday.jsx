@@ -4,74 +4,68 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import PersonIcon from "@mui/icons-material/Person";
 import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import HomeIcon from "@mui/icons-material/Home";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
-import HomeIcon from "@mui/icons-material/Home";
 import {
   Box,
-  Button,
   Container,
   Divider,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  Stack,
-  TextField,
   Typography,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Paper,
 } from "@mui/material";
 
-class ThongTinCaNhan extends Component {
+class LichGiangDayGV extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      studentId: "",
-      fullName: "",
-      birthDate: "",
-      gender: "",
-      address: "",
-      email: "",
-      phone: "",
+      schedule: [
+        {
+          id: "CS030319",
+          subject: "Thực Hành Lập Trình Web",
+          tiet: "10 - 12",
+          phong: "PM05",
+          ngay: "Thứ 2",
+          thoigian: "07/10/2024 - 15/12/2024",
+        },
+        {
+          id: "CS040420",
+          subject: "Cơ sở dữ liệu",
+          tiet: "7 - 9",
+          phong: "PM03",
+          ngay: "Thứ 4",
+          thoigian: "09/10/2024 - 20/12/2024",
+        },
+      ],
     };
   }
-
-  handleChange = (event) => {
-    this.setState({ [event.target.id]: event.target.value });
-  };
 
   handleMenuClick = (text) => {
     if (text === "Thông Tin Giảng Viên") {
       this.props.navigate("/thongtinGV");
-    } 
-    if (text === "Homepage") {
+    } else if (text === "Homepage") {
       this.props.navigate("/homepage");
-    } 
-    else if (text === "Lịch giảng dạy") {
+    } else if (text === "Lịch giảng dạy") {
       this.props.navigate("/lichgiangday");
-    } 
-    else if (text === "Điểm Danh") {
+    } else if (text === "Điểm Danh") {
       this.props.navigate("/diemdanh");
-    } 
-    else if (text === "Xem Kết Quả Điểm Danh") {
+    } else if (text === "Xem Kết Quả Điểm Danh") {
       this.props.navigate("/KQdiemdanh");
-    } 
-    else if (text === "Tra cứu Sinh Viên") {
+    } else if (text === "Tra cứu Sinh Viên") {
       this.props.navigate("/tracuu");
     }
   };
-  
 
   render() {
-    const formFields = [
-      { id: "studentId", label: "Mã Giảng Viên:" },
-      { id: "fullName", label: "Họ và Tên:" },
-      { id: "birthDate", label: "Ngày Sinh:" },
-      { id: "gender", label: "Giới Tính:" },
-      { id: "address", label: "Địa Chỉ:" },
-      { id: "email", label: "Email:" },
-      { id: "phone", label: "Số điện thoại:" },
-    ];
-
     const menuItems = [
       { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
       { text: "Thông Tin Giảng Viên", icon: <PersonIcon fontSize="large" /> },
@@ -108,49 +102,40 @@ class ThongTinCaNhan extends Component {
         {/* Main Content */}
         <Container sx={{ flex: 1, py: 6 }}>
           <Typography variant="h4" textAlign="center" fontWeight={600} mb={3}>
-            Thông Tin Giảng Viên
+            Lịch Giảng Dạy
           </Typography>
           <Divider sx={{ mb: 4 }} />
 
-          <Stack spacing={3} maxWidth={600} mx="auto">
-            {formFields.map((field) => (
-              <TextField
-                key={field.id}
-                fullWidth
-                id={field.id}
-                label={field.label}
-                value={this.state[field.id]}
-                onChange={this.handleChange}
-                variant="outlined"
-                InputLabelProps={{ style: { color: "#333" } }}
-                InputProps={{
-                  style: {
-                    backgroundColor: "#fff",
-                  },
-                }}
-              />
-            ))}
-          </Stack>
-
-          <Box display="flex" justifyContent="flex-end" mt={4} maxWidth={600} mx="auto">
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              sx={{
-                borderRadius: 2,
-                boxShadow: 2,
-                textTransform: "none",
-                px: 4,
-              }}
-            >
-              Chỉnh sửa
-            </Button>
-          </Box>
+          <Paper elevation={3}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell><strong>Mã Môn</strong></TableCell>
+                  <TableCell><strong>Tên Môn</strong></TableCell>
+                  <TableCell><strong>Tiết</strong></TableCell>
+                  <TableCell><strong>Phòng</strong></TableCell>
+                  <TableCell><strong>Ngày</strong></TableCell>
+                  <TableCell><strong>Thời gian</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {this.state.schedule.map((row, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{row.id}</TableCell>
+                    <TableCell>{row.subject}</TableCell>
+                    <TableCell>{row.tiet}</TableCell>
+                    <TableCell>{row.phong}</TableCell>
+                    <TableCell>{row.ngay}</TableCell>
+                    <TableCell>{row.thoigian}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
         </Container>
       </Box>
     );
   }
 }
 
-export default withNavigation(ThongTinCaNhan);
+export default withNavigation(LichGiangDayGV);

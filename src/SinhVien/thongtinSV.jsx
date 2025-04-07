@@ -44,7 +44,10 @@ class ThongTinCaNhan extends Component {
     if (text === "Quét Mã điểm danh") {
       console.log("Quét Mã điểm danh clicked");
       this.props.navigate("/quetmaqr"); // Điều hướng tới trang Quét Mã điểm danh
-    } else if (text === "Thông tin cá nhân") {
+    }else if (text === "QR điểm danh") {
+      this.props.navigate("/maqrdiemdanh");
+    }
+     else if (text === "Thông tin cá nhân") {
       console.log("Thông tin cá nhân clicked");
       this.props.navigate("/thongtinSV"); // Điều hướng tới trang Thông tin cá nhân
     } else if (text === "Thời khóa biểu") {

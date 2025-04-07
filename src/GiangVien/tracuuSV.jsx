@@ -23,14 +23,17 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
+
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import PersonIcon from "@mui/icons-material/Person";
 import QrCodeIcon from "@mui/icons-material/QrCode";
-import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import SearchIcon from "@mui/icons-material/Search";
+import Checkbox from '@mui/material/Checkbox';
+import HomeIcon from "@mui/icons-material/Home";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
-import HomeIcon from "@mui/icons-material/Home";
+
 class DiemDanhGV extends Component {
   constructor(props) {
     super(props);
@@ -39,12 +42,12 @@ class DiemDanhGV extends Component {
       attendanceDate: "2025-03-19",
       selectedClass: "",
       students: [
-        { id: 1, mssv: "DH52112086", name: "Nguyễn Trần Thế Vinh", class: "DH21_TH12", coPhep: "" },
-        { id: 2, mssv: "DH52152145", name: "Huỳnh Đại Thắng", class: "DH21_TH12", coPhep: "" },
-        { id: 3, mssv: "DH52112086", name: "Nguyễn Nhật Phi", class: "DH21_TH12", coPhep: "" },
-        { id: 4, mssv: "DH52111467", name: "Huỳnh Tấn Phát", class: "DH21_TH12", coPhep: "" },
-        { id: 5, mssv: "DH52111469", name: "Lê Thành Phát", class: "DH21_TH12", coPhep: "" },
-        { id: 6, mssv: "DH52111506", name: "Nguyễn Anh Phú", class: "DH21_TH12", coPhep: "" },
+        { id: 1, mssv: "DH52112086", name: "Nguyễn Trần Thế Vinh", class: "DH21_TH12" },
+        { id: 2, mssv: "DH52152145", name: "Huỳnh Đại Thắng", class: "DH21_TH12" },
+        { id: 3, mssv: "DH52112086", name: "Nguyễn Nhật Phi", class: "DH21_TH12" },
+        { id: 4, mssv: "DH52111467", name: "Huỳnh Tấn Phát", class: "DH21_TH12" },
+        { id: 5, mssv: "DH52111469", name: "Lê Thành Phát", class: "DH21_TH12" },
+        { id: 6, mssv: "DH52111506", name: "Nguyễn Anh Phú", class: "DH21_TH12" },
       ],
     };
   }
@@ -54,31 +57,25 @@ class DiemDanhGV extends Component {
       this.props.navigate("/thongtinGV");
     } 
     else if (text === "Homepage") {
-      this.props.navigate("/homepage");
+    this.props.navigate("/homepage");
     } 
     else if (text === "Lịch giảng dạy") {
-      this.props.navigate("/lichgiangday");
-    }
-     else if (text === "Điểm Danh") {
+        this.props.navigate("/lichgiangday");
+    } 
+    else if (text === "Điểm Danh") {
       this.props.navigate("/diemdanh");
-    } else if (text === "Xem Kết Quả Điểm Danh") {
+    } 
+    else if (text === "Xem Kết Quả Điểm Danh") {
       this.props.navigate("/KQDiemDanh");
-    } else if (text === "Tra cứu Sinh Viên") {
+    } 
+    else if (text === "Tra cứu Sinh Viên") {
       this.props.navigate("/tracuu");
     }
   };
 
-  handleAttendanceChange = (id, value) => {
-    this.setState(prevState => ({
-      students: prevState.students.map(student => 
-        student.id === id ? { ...student, coPhep: value } : student
-      ),
-    }));
-  };
-
   handleStatusChange = (id, value) => {
-    this.setState(prevState => ({
-      students: prevState.students.map(student =>
+    this.setState((prevState) => ({
+      students: prevState.students.map((student) =>
         student.id === id ? { ...student, status: value } : student
       ),
     }));
@@ -88,16 +85,16 @@ class DiemDanhGV extends Component {
     const { semester, attendanceDate, selectedClass, students } = this.state;
 
     const menuItems = [
-      { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
+        { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
       { text: "Thông Tin Giảng Viên", icon: <PersonIcon fontSize="large" /> },
       { text: "Lịch giảng dạy", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Điểm Danh", icon: <QrCodeIcon fontSize="large" /> },
       { text: "Xem Kết Quả Điểm Danh", icon: <AssignmentIcon fontSize="large" /> },
-      { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon fontSize="large" /> },
+      { text: "Tra cứu Sinh Viên", icon: <SearchIcon fontSize="large" /> },
     ];
 
     return (
-      <Box display="flex" height="100vh" bgcolor="#f4f6f8">
+      <Box display="flex" bgcolor="#f5f5f5" minHeight="100vh">
         {/* Sidebar */}
         <Box width={240} bgcolor="#2c3e50" p={2}>
           <Box component="img" src={logo} width="100%" mb={4} borderRadius={2} />
@@ -121,8 +118,8 @@ class DiemDanhGV extends Component {
         </Box>
 
         {/* Main Content */}
-        <Container sx={{ flex: 1, py: 4 }}>
-          <Typography variant="h5" fontWeight={600} mb={2}>
+        <Box flex={1} p={3}>
+          <Typography variant="h6" fontWeight={600} mb={2} borderBottom={1}>
             Điểm Danh
           </Typography>
 
@@ -142,8 +139,6 @@ class DiemDanhGV extends Component {
               onChange={(e) => this.setState({ attendanceDate: e.target.value })}
               InputLabelProps={{ shrink: true }}
             />
-
-            {/* Lớp học phần */}
             <FormControl fullWidth>
               <InputLabel>Chọn lớp học phần</InputLabel>
               <Select
@@ -151,47 +146,39 @@ class DiemDanhGV extends Component {
                 onChange={(e) => this.setState({ selectedClass: e.target.value })}
                 label="Chọn lớp học phần"
               >
-                <MenuItem value="DH21_TH12">DH21_TH12</MenuItem>
-                <MenuItem value="DH21_TH13">DH21_TH13</MenuItem>
-                <MenuItem value="DH21_TH14">DH21_TH14</MenuItem>
+                <MenuItem value="DH21_TH12">Xây dựng phần mềm Web</MenuItem>
               </Select>
             </FormControl>
-            <Button variant="contained" sx={{ whiteSpace: "nowrap" }}>
-              Tìm Kiếm
-            </Button>
+            <Button variant="contained">Tìm Kiếm</Button>
           </Stack>
 
-          {/* Nhóm Tiết */}
+          {/* Nhóm tiết học */}
           <Stack direction="row" spacing={1} mb={2}>
             {["Nhóm 5", "Nhóm 1", "Nhóm 2", "Nhóm 3", "Nhóm 4"].map((group, idx) => (
               <Button key={idx} variant="outlined">{`${group} - Tiết 1 ➝ 5`}</Button>
             ))}
           </Stack>
 
-          {/* Action Buttons */}
-          <Stack direction="row" spacing={2} mb={2}>
-            <Button variant="contained" color="primary">
-              Lưu Điểm Danh
-            </Button>
-            <Button variant="contained" color="error">
-              QR Điểm Danh
-            </Button>
-            <Button variant="contained" color="success">
-              Quét Mã
-            </Button>
-          </Stack>
+          {/* Ô tìm kiếm */}
+          <TextField
+            variant="outlined"
+            placeholder="Tìm Kiếm Sinh Viên"
+            fullWidth
+            size="small"
+            sx={{ backgroundColor: "#e0e0e0", mb: 2 }}
+            InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1 }} /> }}
+          />
 
           {/* Table */}
           <TableContainer component={Paper}>
             <Table>
-              <TableHead sx={{ backgroundColor: "#f0f0f0" }}>
+              <TableHead>
                 <TableRow>
                   <TableCell>STT</TableCell>
                   <TableCell>Điểm Danh</TableCell>
                   <TableCell>MSSV</TableCell>
                   <TableCell>Họ Tên</TableCell>
                   <TableCell>Lớp Học</TableCell>
-                  <TableCell>Có Phép</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -199,15 +186,11 @@ class DiemDanhGV extends Component {
                   <TableRow key={student.id}>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell>
-                      <Select
-                        size="small"
-                        value={student.status || ""}
-                        onChange={(e) => this.handleStatusChange(student.id, e.target.value)}
-                      >
-                        <MenuItem value="Có mặt">Có mặt</MenuItem>
-                        <MenuItem value="Vắng">Vắng</MenuItem>
-                        <MenuItem value="Trễ">Trễ</MenuItem>
-                      </Select>
+                      <Checkbox
+                        checked={student.present}
+                        onChange={() => this.handleCheckboxChange(student.id)}
+                        color="primary"
+                      />
                     </TableCell>
                     <TableCell>{student.mssv}</TableCell>
                     <TableCell>{student.name}</TableCell>
@@ -227,7 +210,7 @@ class DiemDanhGV extends Component {
               </TableBody>
             </Table>
           </TableContainer>
-        </Container>
+        </Box>
       </Box>
     );
   }

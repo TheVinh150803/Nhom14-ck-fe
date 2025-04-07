@@ -8,14 +8,16 @@ import ThongTinSV from "./SinhVien/thongtinSV.jsx";
 import ThoiKhoaBieu from './SinhVien/thoikhoabieu.jsx';
 import ScanQR from './SinhVien/QuetMaQR.jsx';
 import KetQuaDiemDanhSV from './SinhVien/ketquadiemdanh.jsx';     
-import QuetMaQR from "./SinhVien/QuetMaQR";
+import MaQRDiemDanh from "./SinhVien/MaQR.jsx"; 
 
 // Import các component cho Giảng Viên
 import LoginGiangVien from "./Login/LoginGiangVien.jsx";
 import ThongtinGV from './GiangVien/thongtinGV.jsx'; 
 import DiemdanhGV from './GiangVien/diemdanh.jsx'; 
 import KQDiemDanhSV from './GiangVien/xemketquadiemdanh.jsx'; 
-
+import TraCuuSV from './GiangVien/tracuuSV.jsx'; 
+import HomePage from './GiangVien/homepage.jsx';
+import LichGiangDayGV from './GiangVien/lichgiangday.jsx';
 function App() {
   return (
     <BrowserRouter>
@@ -27,13 +29,17 @@ function App() {
         <Route path="/ThoiKhoaBieu" element={<ThoiKhoaBieu />} />
         <Route path="/QuetMaQR" element={<ScanQR />} />
         <Route path="/ketquadiemdanh" element={<KetQuaDiemDanhSV />} />
-        <Route path="/quetmaqr" element={<QuetMaQR />} />
+        <Route path="/MaQRDiemDanh" element={<MaQRDiemDanh />} />
 
         {/* Giảng Viên */}
-        <Route path="/LoginGiangVien" element={<LoginGiangVien />} /> {/* Trang login giảng viên */}
+        <Route path="/homepage" element={<HomePage />} /> 
+        <Route path="/LoginGiangVien" element={<LoginGiangVien />} /> 
         <Route path="/ThongTinGV" element={<ThongtinGV />} />
         <Route path="/diemdanh" element={<DiemdanhGV />} />
         <Route path="/KQDiemDanh" element={<KQDiemDanhSV />} />
+        <Route path="/tracuu" element={<TraCuuSV />} />
+        <Route path="/lichgiangday" element={<LichGiangDayGV />} />
+
       </Routes>
     </BrowserRouter>
   );

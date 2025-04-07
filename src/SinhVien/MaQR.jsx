@@ -7,25 +7,17 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
-  Paper,
-  Button,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
-import logo from "../img/logo.jpg";
+import logo from "../img/logo.jpg"; // Đảm bảo logo này đúng đường dẫn
 import withNavigation from "./withNavigation";
 
-class QuetMaQR extends Component {
+class MaQR extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -48,20 +40,15 @@ class QuetMaQR extends Component {
 
   handleMenuClick = (text) => {
     if (text === "Quét Mã điểm danh") {
-      console.log("Quét Mã điểm danh clicked");
       this.props.navigate("/quetmaqr");
     }else if (text === "QR điểm danh") {
-      this.props.navigate("/maqrdiemdanh");
-    } 
-    else if (text === "Thông tin cá nhân") {
-      console.log("Thông tin cá nhân clicked");
+        this.props.navigate("/maqrdiemdanh");
+      }
+     else if (text === "Thông tin cá nhân") {
       this.props.navigate("/thongtinSV");
     } else if (text === "Thời khóa biểu") {
-      console.log("Thời khóa biểu clicked");
       this.props.navigate("/thoikhoabieu");
-    }
-    else if (text === "Kết quả điểm danh") {
-      console.log("Kết quả điểm danh clicked");
+    } else if (text === "Kết quả điểm danh") {
       this.props.navigate("/ketquadiemdanh");
     }
   };
@@ -85,7 +72,7 @@ class QuetMaQR extends Component {
               <ListItem
                 button
                 key={index}
-                onClick={() => this.handleMenuClick(item.text)} // 🔥 Đã thêm sự kiện onClick
+                onClick={() => this.handleMenuClick(item.text)}
               >
                 <ListItemIcon sx={{ color: "white" }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} sx={{ color: "white" }} />
@@ -96,13 +83,17 @@ class QuetMaQR extends Component {
 
         {/* Main Content */}
         <Container sx={{ flex: 1, p: 4 }}>
-          <Typography variant="h4" textAlign="center" mb={2}>
-            Quét Mã Điểm Danh
+          <Typography variant="h6" fontWeight="bold" mb={1}>
+            Quét QR
           </Typography>
           <Divider sx={{ mb: 3 }} />
 
           <Box display="flex" justifyContent="center" mt={3}>
-            <Button variant="contained" color="secondary">Bật Camera</Button>
+            <img
+              src="/img/qrcode.png" // Đặt ảnh mã QR tại public/img/qrcode.png
+              alt="QR Code"
+              width={200}
+            />
           </Box>
         </Container>
       </Box>
@@ -110,4 +101,4 @@ class QuetMaQR extends Component {
   }
 }
 
-export default withNavigation(QuetMaQR);
+export default withNavigation(MaQR);

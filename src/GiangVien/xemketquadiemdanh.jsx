@@ -6,7 +6,7 @@ import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
-
+import HomeIcon from "@mui/icons-material/Home";
 import {
   Box,
   Button,
@@ -26,9 +26,12 @@ class KetQuaDiemDanh extends Component {
     if (text === "Thông Tin Giảng Viên") {
       this.props.navigate("/ThongTinGV");
     } 
-    // else if (text === "Lịch giảng dạy") {
-    //   this.props.navigate("/lichgiangday");
-    // }
+    else if (text === "Homepage") {
+      this.props.navigate("/homepage");
+    }
+    else if (text === "Lịch giảng dạy") {
+      this.props.navigate("/lichgiangday");
+    }
      else if (text === "Điểm Danh") {
       this.props.navigate("/diemdanh");
     } 
@@ -42,6 +45,7 @@ class KetQuaDiemDanh extends Component {
 
   render() {
     const menuItems = [
+      { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
       { text: "Thông Tin Giảng Viên", icon: <PersonIcon fontSize="large" /> },
       { text: "Lịch giảng dạy", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Điểm Danh", icon: <QrCodeIcon fontSize="large" /> },
