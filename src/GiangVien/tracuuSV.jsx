@@ -29,12 +29,13 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import PersonIcon from "@mui/icons-material/Person";
 import QrCodeIcon from "@mui/icons-material/QrCode";
 import SearchIcon from "@mui/icons-material/Search";
-import Checkbox from '@mui/material/Checkbox';
+import Checkbox from "@mui/material/Checkbox";
 import HomeIcon from "@mui/icons-material/Home";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
-
-class DiemDanhGV extends Component {
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import LogoutIcon from "@mui/icons-material/Logout";
+class tracuuSV extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -42,12 +43,54 @@ class DiemDanhGV extends Component {
       attendanceDate: "2025-03-19",
       selectedClass: "",
       students: [
-        { id: 1, mssv: "DH52112086", name: "Nguyễn Trần Thế Vinh", class: "DH21_TH12" },
-        { id: 2, mssv: "DH52152145", name: "Huỳnh Đại Thắng", class: "DH21_TH12" },
-        { id: 3, mssv: "DH52112086", name: "Nguyễn Nhật Phi", class: "DH21_TH12" },
-        { id: 4, mssv: "DH52111467", name: "Huỳnh Tấn Phát", class: "DH21_TH12" },
-        { id: 5, mssv: "DH52111469", name: "Lê Thành Phát", class: "DH21_TH12" },
-        { id: 6, mssv: "DH52111506", name: "Nguyễn Anh Phú", class: "DH21_TH12" },
+        {
+          id: 1,
+          mssv: "DH52112086",
+          name: "Nguyễn Trần Thế Vinh",
+          class: "DH21_TH12",
+          present: false,
+          coPhep: "",
+        },
+        {
+          id: 2,
+          mssv: "DH52152145",
+          name: "Huỳnh Đại Thắng",
+          class: "DH21_TH12",
+          present: false,
+          coPhep: "",
+        },
+        {
+          id: 3,
+          mssv: "DH52112086",
+          name: "Nguyễn Nhật Phi",
+          class: "DH21_TH12",
+          present: false,
+          coPhep: "",
+        },
+        {
+          id: 4,
+          mssv: "DH52111467",
+          name: "Huỳnh Tấn Phát",
+          class: "DH21_TH12",
+          present: false,
+          coPhep: "",
+        },
+        {
+          id: 5,
+          mssv: "DH52111469",
+          name: "Lê Thành Phát",
+          class: "DH21_TH12",
+          present: false,
+          coPhep: "",
+        },
+        {
+          id: 6,
+          mssv: "DH52111506",
+          name: "Nguyễn Anh Phú",
+          class: "DH21_TH12",
+          present: false,
+          coPhep: "",
+        },
       ],
     };
   }
@@ -55,28 +98,34 @@ class DiemDanhGV extends Component {
   handleMenuClick = (text) => {
     if (text === "Thông Tin Giảng Viên") {
       this.props.navigate("/thongtinGV");
-    } 
-    else if (text === "Homepage") {
-    this.props.navigate("/homepage");
-    } 
-    else if (text === "Lịch giảng dạy") {
-        this.props.navigate("/lichgiangday");
-    } 
-    else if (text === "Điểm Danh") {
+    } else if (text === "Homepage") {
+      this.props.navigate("/homepage");
+    } else if (text === "Lịch giảng dạy") {
+      this.props.navigate("/lichgiangday");
+    } else if (text === "Điểm Danh") {
       this.props.navigate("/diemdanh");
-    } 
-    else if (text === "Xem Kết Quả Điểm Danh") {
+    } else if (text === "Xem Kết Quả Điểm Danh") {
       this.props.navigate("/KQDiemDanh");
-    } 
-    else if (text === "Tra cứu Sinh Viên") {
+    } else if (text === "Tra cứu Sinh Viên") {
       this.props.navigate("/tracuu");
+    }
+    else if (text === "Đăng Xuất") {
+      this.props.navigate("/");
     }
   };
 
-  handleStatusChange = (id, value) => {
+  handleCheckboxChange = (id) => {
     this.setState((prevState) => ({
       students: prevState.students.map((student) =>
-        student.id === id ? { ...student, status: value } : student
+        student.id === id ? { ...student, present: !student.present } : student
+      ),
+    }));
+  };
+
+  handleAttendanceChange = (id, value) => {
+    this.setState((prevState) => ({
+      students: prevState.students.map((student) =>
+        student.id === id ? { ...student, coPhep: value } : student
       ),
     }));
   };
@@ -85,16 +134,17 @@ class DiemDanhGV extends Component {
     const { semester, attendanceDate, selectedClass, students } = this.state;
 
     const menuItems = [
-        { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
+      { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
       { text: "Thông Tin Giảng Viên", icon: <PersonIcon fontSize="large" /> },
       { text: "Lịch giảng dạy", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Điểm Danh", icon: <QrCodeIcon fontSize="large" /> },
       { text: "Xem Kết Quả Điểm Danh", icon: <AssignmentIcon fontSize="large" /> },
-      { text: "Tra cứu Sinh Viên", icon: <SearchIcon fontSize="large" /> },
+      { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon fontSize="large" /> },
+       { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
     return (
-      <Box display="flex" bgcolor="#f5f5f5" minHeight="100vh">
+      <Box display="flex" bgcolor="#f5f5f5" minHeight="150vh">
         {/* Sidebar */}
         <Box width={240} bgcolor="#2c3e50" p={2}>
           <Box component="img" src={logo} width="100%" mb={4} borderRadius={2} />
@@ -179,6 +229,7 @@ class DiemDanhGV extends Component {
                   <TableCell>MSSV</TableCell>
                   <TableCell>Họ Tên</TableCell>
                   <TableCell>Lớp Học</TableCell>
+                  <TableCell>Có Phép</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -199,7 +250,9 @@ class DiemDanhGV extends Component {
                       <Select
                         size="small"
                         value={student.coPhep || ""}
-                        onChange={(e) => this.handleAttendanceChange(student.id, e.target.value)}
+                        onChange={(e) =>
+                          this.handleAttendanceChange(student.id, e.target.value)
+                        }
                       >
                         <MenuItem value="Có">Có</MenuItem>
                         <MenuItem value="Không">Không</MenuItem>
@@ -216,4 +269,4 @@ class DiemDanhGV extends Component {
   }
 }
 
-export default withNavigation(DiemDanhGV);
+export default withNavigation(tracuuSV);

@@ -6,6 +6,7 @@ import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
+import LogoutIcon from "@mui/icons-material/Logout";
 import {
   Box,
   Button,
@@ -39,24 +40,27 @@ class ThongTinCaNhan extends Component {
     this.setState({ [event.target.id]: event.target.value });
   };
 
-  // Hàm xử lý sự kiện khi người dùng nhấn vào menu
+  
   handleMenuClick = (text) => {
     if (text === "Quét Mã điểm danh") {
       console.log("Quét Mã điểm danh clicked");
-      this.props.navigate("/quetmaqr"); // Điều hướng tới trang Quét Mã điểm danh
+      this.props.navigate("/quetmaqr"); 
     }else if (text === "QR điểm danh") {
       this.props.navigate("/maqrdiemdanh");
     }
      else if (text === "Thông tin cá nhân") {
       console.log("Thông tin cá nhân clicked");
-      this.props.navigate("/thongtinSV"); // Điều hướng tới trang Thông tin cá nhân
+      this.props.navigate("/thongtinSV"); 
     } else if (text === "Thời khóa biểu") {
       console.log("Thời khóa biểu clicked");
-      this.props.navigate("/thoikhoabieu"); // Điều hướng tới trang Thời khóa biểu
+      this.props.navigate("/thoikhoabieu"); 
     } else if (text === "Kết quả điểm danh") {
       console.log("Kết quả điểm danh clicked");
-      this.props.navigate("/ketquadiemdanh"); // Điều hướng tới trang Kết quả điểm danh
+      this.props.navigate("/ketquadiemdanh"); 
+    }else if (text === "Đăng Xuất") {
+      this.props.navigate("/");
     }
+    
   };
 
   render() {
@@ -77,6 +81,7 @@ class ThongTinCaNhan extends Component {
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
       { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
+      { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
     return (

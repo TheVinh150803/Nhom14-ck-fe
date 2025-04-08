@@ -24,7 +24,7 @@ import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation"; // 👈 Thêm dòng này
-
+import LogoutIcon from "@mui/icons-material/Logout";
 class KetQuaDiemDanh extends Component {
   constructor(props) {
     super(props);
@@ -73,6 +73,9 @@ class KetQuaDiemDanh extends Component {
       console.log("Kết quả điểm danh clicked");
       this.props.navigate("/ketquadiemdanh");
     }
+    else if (text === "Đăng Xuất") {
+      this.props.navigate("/");
+    }
   };
   
 
@@ -85,6 +88,7 @@ class KetQuaDiemDanh extends Component {
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
       { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
+      { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
     return (

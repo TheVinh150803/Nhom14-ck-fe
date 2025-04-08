@@ -16,7 +16,7 @@ import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg"; // Đảm bảo logo này đúng đường dẫn
 import withNavigation from "./withNavigation";
-
+import LogoutIcon from "@mui/icons-material/Logout";
 class MaQR extends Component {
   constructor(props) {
     super(props);
@@ -51,6 +51,9 @@ class MaQR extends Component {
     } else if (text === "Kết quả điểm danh") {
       this.props.navigate("/ketquadiemdanh");
     }
+    else if (text === "Đăng Xuất") {
+      this.props.navigate("/");
+    }
   };
 
   render() {
@@ -60,6 +63,7 @@ class MaQR extends Component {
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
       { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
+      { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
     return (

@@ -7,6 +7,7 @@ import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
 import HomeIcon from "@mui/icons-material/Home";
+import LogoutIcon from "@mui/icons-material/Logout";
 import {
   Box,
   Button,
@@ -41,6 +42,9 @@ class KetQuaDiemDanh extends Component {
     else if (text === "Tra cứu Sinh Viên") {
       this.props.navigate("/tracuu");
     }
+    else if (text === "Đăng Xuất") {
+      this.props.navigate("/");
+    }
   };
 
   render() {
@@ -51,6 +55,7 @@ class KetQuaDiemDanh extends Component {
       { text: "Điểm Danh", icon: <QrCodeIcon fontSize="large" /> },
       { text: "Xem Kết Quả Điểm Danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon fontSize="large" /> },
+      { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
     const rows = [
