@@ -85,7 +85,7 @@ class KetQuaDiemDanh extends Component {
     ];
 
     return (
-      <Box display="flex" height="100vh" bgcolor="#f4f6f8">
+      <Box display="flex" height="110vh" bgcolor="#f4f6f8">
         {/* Sidebar */}
         <Box width={240} bgcolor="#2c3e50" p={2}>
           <Box component="img" src={logo} width="100%" mb={4} borderRadius={2} />

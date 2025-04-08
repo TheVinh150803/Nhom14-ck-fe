@@ -144,7 +144,7 @@ class tracuuSV extends Component {
     ];
 
     return (
-      <Box display="flex" bgcolor="#f5f5f5" minHeight="150vh">
+      <Box display="flex" bgcolor="#f5f5f5" minHeight="110vh">
         {/* Sidebar */}
         <Box width={240} bgcolor="#2c3e50" p={2}>
           <Box component="img" src={logo} width="100%" mb={4} borderRadius={2} />
