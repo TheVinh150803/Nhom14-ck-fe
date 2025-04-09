@@ -18,6 +18,23 @@ import KQDiemDanhSV from './GiangVien/xemketquadiemdanh.jsx';
 import TraCuuSV from './GiangVien/tracuuSV.jsx'; 
 import HomePage from './GiangVien/homepage.jsx';
 import LichGiangDayGV from './GiangVien/lichgiangday.jsx';
+
+
+
+//Import các component cho Admin
+import QuanLyGiangVien from "./Admin/QuanLyGiangVien.jsx";
+import ThemThongTinGiangVien from "./Admin/ThemThongTinGiangVien.jsx";
+import ChinhSuaThongTinGiangVien from "./Admin/ChinhSuaThongTinGiangVien.jsx";
+import QuanLySinhVien from "./Admin/QuanLySinhVien.jsx";
+import ChinhSuaThongTinSinhVien from "./Admin/ChinhSuaThongTinSinhVien.jsx";
+import ThemThongTinSinhVien from "./Admin/ThemThongTinSinhVien.jsx";
+import QuanLyLopHoc from "./Admin/QuanLyLopHoc.jsx";
+import ThemThongTinLopHoc from "./Admin/ThemThongTinLopHoc.jsx";
+import ChinhSuaThongTinLopHoc from "./Admin/ChinhSuaThongTinLopHoc.jsx";
+import ThemSinhVienVaoLopHoc from "./Admin/ThemSinhVienVaoLopHoc.jsx";
+import DanhSachMonHoc from "./Admin/DanhSachMonHoc.jsx";
+import LichHocCuaMonHoc from "./Admin/LichHocCuaMonHoc.jsx";
+import ChinhSuaLichHocCuaMonHoc from "./Admin/ChinhSuaLichHocCuaMonHoc.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -40,6 +57,42 @@ function App() {
         <Route path="/tracuu" element={<TraCuuSV />} />
         <Route path="/lichgiangday" element={<LichGiangDayGV />} />
 
+         {/* Admin */}
+                <Route path="/QuanLyGiangVien" element={<QuanLyGiangVien />} />
+                <Route
+                  path="/ThemThongTinGiangVien"
+                  element={<ThemThongTinGiangVien />}
+                />
+                <Route
+                  path="/ChinhSuaThongTinGiangVien"
+                  element={<ChinhSuaThongTinGiangVien />}
+                />
+                <Route path="/QuanLySinhVien" element={<QuanLySinhVien />} />
+                <Route
+                  path="/ChinhSuaThongTinSinhVien"
+                  element={<ChinhSuaThongTinSinhVien />}
+                />
+                <Route
+                  path="/ThemThongTinSinhVien"
+                  element={<ThemThongTinSinhVien />}
+                />
+                <Route path="/QuanLyLopHoc" element={<QuanLyLopHoc />} />
+                <Route path="/ThemThongTinLopHoc" element={<ThemThongTinLopHoc />} />
+                <Route
+                  path="/ChinhSuaThongTinLopHoc"
+                  element={<ChinhSuaThongTinLopHoc />}
+                />
+                <Route
+                  path="/ThemSinhVienVaoLopHoc"
+                  element={<ThemSinhVienVaoLopHoc />}
+                />
+                <Route path="/DanhSachMonHoc" element={<DanhSachMonHoc />} />
+                <Route path="/LichHocCuaMonHoc" element={<LichHocCuaMonHoc />} />
+                <Route
+                  path="/ChinhSuaLichHocCuaMonHoc"
+                  element={<ChinhSuaLichHocCuaMonHoc />}
+                />
+        
       </Routes>
     </BrowserRouter>
   );

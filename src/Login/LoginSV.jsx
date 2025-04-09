@@ -13,9 +13,13 @@ import schoolImage from "../img/anhtruong.jpg";
 import logo from "../img/logo.jpg";
 
 
+
+
 // Tạo nút chuyển hướng
 const NavigateButtons = () => {
   const navigate = useNavigate();
+
+
 
 
   return (
@@ -31,6 +35,8 @@ const NavigateButtons = () => {
 };
 
 
+
+
 // Dùng HOC để dùng useNavigate trong class
 function withRouter(Component) {
   return function (props) {
@@ -38,6 +44,8 @@ function withRouter(Component) {
     return <Component {...props} navigate={navigate} />;
   };
 }
+
+
 
 
 class LoginSV extends Component {
@@ -50,9 +58,13 @@ class LoginSV extends Component {
   }
 
 
+
+
   handleMSSVChange = (event) => {
     this.setState({ mssv: event.target.value });
   };
+
+
 
 
   handlePasswordChange = (event) => {
@@ -60,31 +72,45 @@ class LoginSV extends Component {
   };
 
 
+
+
   handleLogin = async () => {
     const { mssv, password } = this.state;
 
 
     try {
-      const response = await axios.post("http://localhost:8000/api/dangnhap", {
+      const response = await axios.post("https://webdiemdanh-1.onrender.com/api/sinhvien/dangnhap", {
         mssv,
         password,
       });
+
+
       const data = response.data;
+      console.log(data);
+
+
       if (data.canlogin) {
-        alert("Đăng nhập thành công: ");
+        localStorage.setItem("token", data.token);
+
+
+        alert("Đăng nhập thành công");
         this.props.navigate("/thongtinSV");
       } else {
         alert("Sai MSSV hoặc mật khẩu");
       }
     } catch (error) {
-      console.error("Sai MSSV", error);
+      console.error("Lỗi đăng nhập:", error);
       alert("Lỗi hệ thống hoặc kết nối");
     }
   };
 
 
+
+
   render() {
     const { mssv, password } = this.state;
+
+
 
 
     return (
@@ -125,6 +151,8 @@ class LoginSV extends Component {
             </Typography>
 
 
+
+
             <TextField
               fullWidth
               label="MSSV"
@@ -133,6 +161,8 @@ class LoginSV extends Component {
               onChange={this.handleMSSVChange}
               sx={{ marginBottom: "15px" }}
             />
+
+
 
 
             <TextField
@@ -146,6 +176,8 @@ class LoginSV extends Component {
             />
 
 
+
+
             <Button
               variant="contained"
               onClick={this.handleLogin}
@@ -155,11 +187,17 @@ class LoginSV extends Component {
             </Button>
 
 
+
+
             <NavigateButtons />
           </Box>
 
 
+
+
           <Divider orientation="vertical" flexItem sx={{ width: "3px", bgcolor: "gray" }} />
+
+
 
 
           <Box
@@ -177,7 +215,14 @@ class LoginSV extends Component {
 }
 
 
+
+
 export default withRouter(LoginSV);
+
+
+
+
+
 
 
 

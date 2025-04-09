@@ -13,9 +13,13 @@ import schoolImage from "../img/anhtruong.jpg";
 import logo from "../img/logo.jpg";
 
 
+
+
 // Tạo nút chuyển hướng
 const NavigateButtons = () => {
   const navigate = useNavigate();
+
+
 
 
   return (
@@ -37,6 +41,10 @@ const NavigateButtons = () => {
 
 
 
+
+
+
+
 function withRouter(Component) {
   return function (props) {
     const navigate = useNavigate();
@@ -45,19 +53,25 @@ function withRouter(Component) {
 }
 
 
+
+
 class LoginGiangVien extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      maGV: "", // Thêm thuộc tính cho username
+      Magiangvien: "", // Thêm thuộc tính cho username
       password: "",  // Thêm thuộc tính cho password
     };
   }
 
 
+
+
   handleUsernameChange = (event) => {
-    this.setState({ maGV: event.target.value });
+    this.setState({ Magiangvien: event.target.value });
   };
+
+
 
 
   handlePasswordChange = (event) => {
@@ -65,20 +79,25 @@ class LoginGiangVien extends Component {
   };
 
 
+
+
   handleLogin = async () => {
-    const { maGV, password } = this.state;
+    const { Magiangvien, password } = this.state;
+
+
 
 
     try {
-      const response = await axios.post("http://localhost:8000/api/dangnhapGV", {
-        maGV,
+      const response = await axios.post("https://webdiemdanh-1.onrender.com/api/giangvien/dangnhap", {
+        Magiangvien,
         password,
       });
       console.log(response);
       const data = response.data;
       if (data.canlogin) {
         alert("Đăng nhập thành công!");
-        this.props.navigate("/thongtinGV"); // Chuyển hướng khi đăng nhập thành công
+        localStorage.setItem("token", data.token);
+        this.props.navigate("/thongtinGV");
       } else {
         alert("Sai tên đăng nhập hoặc mật khẩu");
       }
@@ -89,8 +108,12 @@ class LoginGiangVien extends Component {
   };
 
 
+
+
   render() {
-    const { maGV, password } = this.state;
+    const { Magiangvien, password } = this.state;
+
+
 
 
     return (
@@ -131,14 +154,18 @@ class LoginGiangVien extends Component {
             </Typography>
 
 
+
+
             <TextField
               fullWidth
               label="Username"
               variant="outlined"
-              value={maGV}
+              value={Magiangvien}
               onChange={this.handleUsernameChange}
               sx={{ marginBottom: "15px" }}
             />
+
+
 
 
             <TextField
@@ -152,6 +179,8 @@ class LoginGiangVien extends Component {
             />
 
 
+
+
             <Button
               variant="contained"
               onClick={this.handleLogin}
@@ -161,11 +190,17 @@ class LoginGiangVien extends Component {
             </Button>
 
 
+
+
             <NavigateButtons />
           </Box>
 
 
+
+
           <Divider orientation="vertical" flexItem sx={{ width: "3px", bgcolor: "gray" }} />
+
+
 
 
           <Box
@@ -181,6 +216,8 @@ class LoginGiangVien extends Component {
     );
   }
 }
+
+
 
 
 export default withRouter(LoginGiangVien);

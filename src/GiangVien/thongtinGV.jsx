@@ -8,6 +8,7 @@ import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
 import HomeIcon from "@mui/icons-material/Home";
 import LogoutIcon from "@mui/icons-material/Logout";
+import axios from "axios";
 import {
   Box,
   Button,
@@ -22,40 +23,70 @@ import {
   Typography,
 } from "@mui/material";
 
-class ThongTinCaNhan extends Component {
+
+class ThongTinCaNhanGiangvien extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      studentId: "",
+      magv: "",
       fullName: "",
-      birthDate: "",
       gender: "",
       address: "",
       email: "",
       phone: "",
     };
   }
+  componentDidMount() {
+    const token = localStorage.getItem("token");
+    if (token) {
+      axios
+        .get("https://webdiemdanh-1.onrender.com/api/giangvien/ttgv", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          this.setState({
+            magv: response.data.magv,
+            fullName: response.data.name,
+            gender: response.data.gioitinh,
+            address: response.data.diachi,
+            email: response.data.email,
+            phone: response.data.sdt,
+          });
+        })
+        .catch((error) => {
+          alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+          this.props.navigate("/");
+        });
+    } else {
+      alert("Vui lòng đăng nhập trước.");
+      this.props.navigate("/");
+    }
+  }
+
 
   handleChange = (event) => {
     this.setState({ [event.target.id]: event.target.value });
   };
 
+
   handleMenuClick = (text) => {
     if (text === "Thông Tin Giảng Viên") {
       this.props.navigate("/thongtinGV");
-    } 
+    }
     if (text === "Homepage") {
       this.props.navigate("/homepage");
-    } 
+    }
     else if (text === "Lịch giảng dạy") {
       this.props.navigate("/lichgiangday");
-    } 
+    }
     else if (text === "Điểm Danh") {
       this.props.navigate("/diemdanh");
-    } 
+    }
     else if (text === "Xem Kết Quả Điểm Danh") {
       this.props.navigate("/KQdiemdanh");
-    } 
+    }
     else if (text === "Tra cứu Sinh Viên") {
       this.props.navigate("/tracuu");
     }
@@ -63,18 +94,20 @@ class ThongTinCaNhan extends Component {
       this.props.navigate("/");
     }
   };
-  
+
+
+
 
   render() {
     const formFields = [
-      { id: "studentId", label: "Mã Giảng Viên:" },
+      { id: "magv", label: "Mã Giảng Viên:" },
       { id: "fullName", label: "Họ và Tên:" },
-      { id: "birthDate", label: "Ngày Sinh:" },
       { id: "gender", label: "Giới Tính:" },
       { id: "address", label: "Địa Chỉ:" },
       { id: "email", label: "Email:" },
       { id: "phone", label: "Số điện thoại:" },
     ];
+
 
     const menuItems = [
       { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
@@ -85,6 +118,7 @@ class ThongTinCaNhan extends Component {
       { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon fontSize="large" /> },
       { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
+
 
     return (
       <Box display="flex" height="110vh" bgcolor="#f4f6f8">
@@ -110,12 +144,14 @@ class ThongTinCaNhan extends Component {
           </List>
         </Box>
 
+
         {/* Main Content */}
         <Container sx={{ flex: 1, py: 6 }}>
           <Typography variant="h4" textAlign="center" fontWeight={600} mb={3}>
             Thông Tin Giảng Viên
           </Typography>
           <Divider sx={{ mb: 4 }} />
+
 
           <Stack spacing={3} maxWidth={600} mx="auto">
             {formFields.map((field) => (
@@ -136,6 +172,7 @@ class ThongTinCaNhan extends Component {
               />
             ))}
           </Stack>
+
 
           <Box display="flex" justifyContent="flex-end" mt={4} maxWidth={600} mx="auto">
             <Button
@@ -158,4 +195,7 @@ class ThongTinCaNhan extends Component {
   }
 }
 
-export default withNavigation(ThongTinCaNhan);
+
+export default withNavigation(ThongTinCaNhanGiangvien);
+
+
