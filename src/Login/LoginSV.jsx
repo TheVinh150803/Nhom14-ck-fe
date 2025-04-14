@@ -19,9 +19,6 @@ import logo from "../img/logo.jpg";
 const NavigateButtons = () => {
   const navigate = useNavigate();
 
-
-
-
   return (
     <Box sx={{ display: "flex", gap: "10px", marginTop: "15px" }}>
       <Button variant="contained" onClick={() => navigate("/")}>
@@ -91,7 +88,6 @@ class LoginSV extends Component {
 
       if (data.canlogin) {
         localStorage.setItem("token", data.token);
-
 
         alert("Đăng nhập thành công");
         this.props.navigate("/thongtinSV");
