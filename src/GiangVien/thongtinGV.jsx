@@ -1,3 +1,5 @@
+
+
 import React, { Component } from "react";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
@@ -21,6 +23,10 @@ import {
   Stack,
   TextField,
   Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 
 
@@ -34,8 +40,11 @@ class ThongTinCaNhanGiangvien extends Component {
       address: "",
       email: "",
       phone: "",
+      isEditing: false,
     };
   }
+
+
   componentDidMount() {
     const token = localStorage.getItem("token");
     if (token) {
@@ -46,16 +55,20 @@ class ThongTinCaNhanGiangvien extends Component {
           },
         })
         .then((response) => {
-          this.setState({
+          const data = {
             magv: response.data.magv,
             fullName: response.data.name,
             gender: response.data.gioitinh,
             address: response.data.diachi,
             email: response.data.email,
             phone: response.data.sdt,
+          };
+          this.setState({
+            ...data,
+            originalData: data,
           });
         })
-        .catch((error) => {
+        .catch(() => {
           alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
           this.props.navigate("/");
         });
@@ -67,38 +80,84 @@ class ThongTinCaNhanGiangvien extends Component {
 
 
   handleChange = (event) => {
-    this.setState({ [event.target.id]: event.target.value });
+    this.setState({ [event.target.id || event.target.name]: event.target.value });
+  };
+
+
+  handleEditToggle = () => {
+    const { isEditing } = this.state;
+
+
+    if (isEditing) {
+      const token = localStorage.getItem("token");
+      axios
+        .put(
+          "https://webdiemdanh-1.onrender.com/api/giangvien/capnhat",
+          {
+            magv: this.state.magv,
+            name: this.state.fullName,
+            gioitinh: this.state.gender,
+            diachi: this.state.address,
+            email: this.state.email,
+            sdt: this.state.phone,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then(() => {
+          alert("Cập nhật thông tin thành công!");
+          this.setState((prevState) => ({
+            isEditing: false,
+            originalData: {
+              magv: prevState.magv,
+              fullName: prevState.fullName,
+              gender: prevState.gender,
+              address: prevState.address,
+              email: prevState.email,
+              phone: prevState.phone,
+            },
+          }));
+        })
+        .catch((error) => {
+          alert(`Cập nhật thất bại: ${error.response?.data?.message || error.message}`);
+        });
+    } else {
+      this.setState({ isEditing: true });
+    }
+  };
+
+
+  handleCancelEdit = () => {
+    this.setState((prevState) => ({
+      ...prevState.originalData,
+      isEditing: false,
+    }));
   };
 
 
   handleMenuClick = (text) => {
-    if (text === "Thông Tin Giảng Viên") {
-      this.props.navigate("/thongtinGV");
-    }
-    if (text === "Homepage") {
-      this.props.navigate("/homepage");
-    }
-    else if (text === "Lịch giảng dạy") {
-      this.props.navigate("/lichgiangday");
-    }
-    else if (text === "Điểm Danh") {
-      this.props.navigate("/diemdanh");
-    }
-    else if (text === "Xem Kết Quả Điểm Danh") {
-      this.props.navigate("/KQdiemdanh");
-    }
-    else if (text === "Tra cứu Sinh Viên") {
-      this.props.navigate("/tracuu");
-    }
-    else if (text === "Đăng Xuất") {
-      this.props.navigate("/");
+    const routes = {
+      "Thông Tin Giảng Viên": "/thongtinGV",
+      Homepage: "/homepage",
+      "Lịch giảng dạy": "/lichgiangday",
+      "Điểm Danh": "/diemdanh",
+      "Xem Kết Quả Điểm Danh": "/KQdiemdanh",
+      "Tra cứu Sinh Viên": "/tracuu",
+      "Đăng Xuất": "/",
+    };
+    if (routes[text]) {
+      this.props.navigate(routes[text]);
     }
   };
 
 
-
-
   render() {
+    const { isEditing } = this.state;
+
+
     const formFields = [
       { id: "magv", label: "Mã Giảng Viên:" },
       { id: "fullName", label: "Họ và Tên:" },
@@ -154,39 +213,111 @@ class ThongTinCaNhanGiangvien extends Component {
 
 
           <Stack spacing={3} maxWidth={600} mx="auto">
-            {formFields.map((field) => (
-              <TextField
-                key={field.id}
-                fullWidth
-                id={field.id}
-                label={field.label}
-                value={this.state[field.id]}
-                onChange={this.handleChange}
-                variant="outlined"
-                InputLabelProps={{ style: { color: "#333" } }}
-                InputProps={{
-                  style: {
-                    backgroundColor: "#fff",
-                  },
-                }}
-              />
-            ))}
+            {formFields.map((field) => {
+              if (field.id === "gender") {
+                if (isEditing) {
+                  return (
+                    <FormControl fullWidth key={field.id}>
+                      <InputLabel id="gender-label">Giới Tính</InputLabel>
+                      <Select
+                        labelId="gender-label"
+                        id="gender"
+                        name="gender"
+                        value={this.state.gender}
+                        onChange={this.handleChange}
+                        label="Giới Tính"
+                      >
+                        <MenuItem value="Nam">Nam</MenuItem>
+                        <MenuItem value="Nữ">Nữ</MenuItem>
+                      </Select>
+                    </FormControl>
+                  );
+                } else {
+                  return (
+                    <TextField
+                      key={field.id}
+                      fullWidth
+                      id={field.id}
+                      label={field.label}
+                      value={this.state[field.id]}
+                      variant="outlined"
+                      disabled
+                      InputLabelProps={{ style: { color: "#333" } }}
+                      InputProps={{
+                        style: {
+                          backgroundColor: "#fff",
+                          color: "#000",
+                        },
+                      }}
+                    />
+                  );
+                }
+              }
+
+
+
+
+              return (
+                <TextField
+                  key={field.id}
+                  fullWidth
+                  id={field.id}
+                  label={field.label}
+                  value={this.state[field.id]}
+                  onChange={this.handleChange}
+                  variant="outlined"
+                  disabled={!isEditing}
+                  InputLabelProps={{ style: { color: "#333" } }}
+                  InputProps={{
+                    style: {
+                      backgroundColor: "#fff",
+                      color: "#000",
+                    },
+                    readOnly: !isEditing,
+                  }}
+                />
+              );
+            })}
           </Stack>
 
 
-          <Box display="flex" justifyContent="flex-end" mt={4} maxWidth={600} mx="auto">
+          <Box
+            display="flex"
+            justifyContent="flex-end"
+            gap={2}
+            mt={4}
+            maxWidth={600}
+            mx="auto"
+          >
+            {isEditing && (
+              <Button
+                variant="outlined"
+                color="error"
+                size="large"
+                onClick={this.handleCancelEdit}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: "none",
+                  px: 4,
+                  width: 140,
+                }}
+              >
+                Trở về
+              </Button>
+            )}
             <Button
               variant="contained"
-              color="primary"
+              color={isEditing ? "success" : "primary"}
               size="large"
+              onClick={this.handleEditToggle}
               sx={{
                 borderRadius: 2,
-                boxShadow: 2,
                 textTransform: "none",
                 px: 4,
+                width: 140,
               }}
             >
-              Chỉnh sửa
+              {isEditing ? "Lưu" : "Chỉnh sửa"}
             </Button>
           </Box>
         </Container>
@@ -197,5 +328,6 @@ class ThongTinCaNhanGiangvien extends Component {
 
 
 export default withNavigation(ThongTinCaNhanGiangvien);
+
 
 
