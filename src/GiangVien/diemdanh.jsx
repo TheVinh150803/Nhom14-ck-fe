@@ -22,6 +22,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  Dialog,
 } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
@@ -32,6 +33,9 @@ import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
 import HomeIcon from "@mui/icons-material/Home";
 import LogoutIcon from "@mui/icons-material/Logout";
+import axios from "axios";
+import { QRCodeCanvas } from "qrcode.react";
+
 
 class DiemDanhGV extends Component {
   constructor(props) {
@@ -48,20 +52,24 @@ class DiemDanhGV extends Component {
         { id: 5, mssv: "DH52111469", name: "Lê Thành Phát", class: "DH21_TH12", coPhep: "" },
         { id: 6, mssv: "DH52111506", name: "Nguyễn Anh Phú", class: "DH21_TH12", coPhep: "" },
       ],
+      qrCodeData: null,
+      isLoadingQRCode: false, // Add loading state
+      qrDialogOpen: false,
     };
   }
+
 
   handleMenuClick = (text) => {
     if (text === "Thông Tin Giảng Viên") {
       this.props.navigate("/thongtinGV");
-    } 
+    }
     else if (text === "Homepage") {
       this.props.navigate("/homepage");
-    } 
+    }
     else if (text === "Lịch giảng dạy") {
       this.props.navigate("/lichgiangday");
     }
-     else if (text === "Điểm Danh") {
+    else if (text === "Điểm Danh") {
       this.props.navigate("/diemdanh");
     } else if (text === "Xem Kết Quả Điểm Danh") {
       this.props.navigate("/KQDiemDanh");
@@ -73,13 +81,15 @@ class DiemDanhGV extends Component {
     }
   };
 
+
   handleAttendanceChange = (id, value) => {
     this.setState(prevState => ({
-      students: prevState.students.map(student => 
+      students: prevState.students.map(student =>
         student.id === id ? { ...student, coPhep: value } : student
       ),
     }));
   };
+
 
   handleStatusChange = (id, value) => {
     this.setState(prevState => ({
@@ -89,8 +99,39 @@ class DiemDanhGV extends Component {
     }));
   };
 
+
+  handleGenerateQRCode = async () => {
+    const { selectedClass } = this.state;
+    if (!selectedClass) {
+      alert("Vui lòng chọn lớp học phần trước khi tạo mã QR.");
+      return;
+    }
+
+
+    this.setState({ isLoadingQRCode: true, qrCodeData: null });
+
+
+    try {
+      const response = await axios.get(`https://webdiemdanh-1.onrender.com/api/diemdanh/tao-qrcode/${selectedClass}`, {
+        headers: { Accept: "image/svg+xml" },
+      });
+
+
+      this.setState({ qrCodeData: response.data, qrDialogOpen: true });
+    } catch (error) {
+      console.error("Lỗi tạo mã QR:", error);
+      alert("Không thể tạo mã QR. Vui lòng thử lại.");
+    } finally {
+      this.setState({ isLoadingQRCode: false });
+    }
+  };
+
+
+
+
   render() {
-    const { semester, attendanceDate, selectedClass, students } = this.state;
+    const { semester, attendanceDate, selectedClass, students, qrCodeData, isLoadingQRCode } = this.state;
+
 
     const menuItems = [
       { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
@@ -101,6 +142,7 @@ class DiemDanhGV extends Component {
       { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon fontSize="large" /> },
       { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
+
 
     return (
       <Box display="flex" height="110vh" bgcolor="#f4f6f8">
@@ -126,11 +168,13 @@ class DiemDanhGV extends Component {
           </List>
         </Box>
 
+
         {/* Main Content */}
         <Container sx={{ flex: 1, py: 4 }}>
           <Typography variant="h5" fontWeight={600} mb={2}>
             Điểm Danh
           </Typography>
+
 
           {/* Filters */}
           <Stack direction="row" spacing={2} mb={2}>
@@ -149,6 +193,7 @@ class DiemDanhGV extends Component {
               InputLabelProps={{ shrink: true }}
             />
 
+
             {/* Lớp học phần */}
             <FormControl fullWidth>
               <InputLabel>Chọn lớp học phần</InputLabel>
@@ -157,9 +202,9 @@ class DiemDanhGV extends Component {
                 onChange={(e) => this.setState({ selectedClass: e.target.value })}
                 label="Chọn lớp học phần"
               >
-                <MenuItem value="DH21_TH12">DH21_TH12</MenuItem>
-                <MenuItem value="DH21_TH13">DH21_TH13</MenuItem>
-                <MenuItem value="DH21_TH14">DH21_TH14</MenuItem>
+                <MenuItem value="1">XDPMW nhóm 1 tiết 1-5</MenuItem>
+                <MenuItem value="2">XDPMW nhóm 2 tiết 1-5</MenuItem>
+                <MenuItem value="3">XDPMW nhóm 4 tiết 1-5</MenuItem>
               </Select>
             </FormControl>
             <Button variant="contained" sx={{ whiteSpace: "nowrap" }}>
@@ -167,25 +212,34 @@ class DiemDanhGV extends Component {
             </Button>
           </Stack>
 
-          {/* Nhóm Tiết */}
-          <Stack direction="row" spacing={1} mb={2}>
-            {["Nhóm 5", "Nhóm 1", "Nhóm 2", "Nhóm 3", "Nhóm 4"].map((group, idx) => (
-              <Button key={idx} variant="outlined">{`${group} - Tiết 1 ➝ 5`}</Button>
-            ))}
-          </Stack>
 
           {/* Action Buttons */}
           <Stack direction="row" spacing={2} mb={2}>
             <Button variant="contained" color="primary">
               Lưu Điểm Danh
             </Button>
-            <Button variant="contained" color="error">
+            <Button variant="contained" color="error" onClick={this.handleGenerateQRCode}>
               QR Điểm Danh
             </Button>
             <Button variant="contained" color="success">
               Quét Mã
             </Button>
           </Stack>
+
+
+          {/* QR Code Display */}
+          <Box mt={2} display="flex" justifyContent="center">
+            {isLoadingQRCode ? (
+              <Typography>Đang tạo mã QR...</Typography>
+            ) : qrCodeData ? (
+              <div dangerouslySetInnerHTML={{ __html: qrCodeData }} />
+            ) : (
+              <Typography>Nhấn "QR Điểm Danh" để tạo mã QR.</Typography>
+            )}
+          </Box>
+
+
+
 
           {/* Table */}
           <TableContainer component={Paper}>
@@ -238,5 +292,6 @@ class DiemDanhGV extends Component {
     );
   }
 }
+
 
 export default withNavigation(DiemDanhGV);

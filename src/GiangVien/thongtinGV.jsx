@@ -1,5 +1,3 @@
-
-
 import React, { Component } from "react";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
@@ -112,11 +110,7 @@ class ThongTinCaNhanGiangvien extends Component {
           this.setState((prevState) => ({
             isEditing: false,
             originalData: {
-              magv: prevState.magv,
-              fullName: prevState.fullName,
-              gender: prevState.gender,
               address: prevState.address,
-              email: prevState.email,
               phone: prevState.phone,
             },
           }));
@@ -214,47 +208,7 @@ class ThongTinCaNhanGiangvien extends Component {
 
           <Stack spacing={3} maxWidth={600} mx="auto">
             {formFields.map((field) => {
-              if (field.id === "gender") {
-                if (isEditing) {
-                  return (
-                    <FormControl fullWidth key={field.id}>
-                      <InputLabel id="gender-label">Giới Tính</InputLabel>
-                      <Select
-                        labelId="gender-label"
-                        id="gender"
-                        name="gender"
-                        value={this.state.gender}
-                        onChange={this.handleChange}
-                        label="Giới Tính"
-                      >
-                        <MenuItem value="Nam">Nam</MenuItem>
-                        <MenuItem value="Nữ">Nữ</MenuItem>
-                      </Select>
-                    </FormControl>
-                  );
-                } else {
-                  return (
-                    <TextField
-                      key={field.id}
-                      fullWidth
-                      id={field.id}
-                      label={field.label}
-                      value={this.state[field.id]}
-                      variant="outlined"
-                      disabled
-                      InputLabelProps={{ style: { color: "#333" } }}
-                      InputProps={{
-                        style: {
-                          backgroundColor: "#fff",
-                          color: "#000",
-                        },
-                      }}
-                    />
-                  );
-                }
-              }
-
-
+              const isEditable = isEditing && (field.id === "address" || field.id === "phone");
 
 
               return (
@@ -266,14 +220,14 @@ class ThongTinCaNhanGiangvien extends Component {
                   value={this.state[field.id]}
                   onChange={this.handleChange}
                   variant="outlined"
-                  disabled={!isEditing}
+                  disabled={!isEditable}
                   InputLabelProps={{ style: { color: "#333" } }}
                   InputProps={{
                     style: {
                       backgroundColor: "#fff",
                       color: "#000",
                     },
-                    readOnly: !isEditing,
+                    readOnly: !isEditable,
                   }}
                 />
               );
@@ -328,6 +282,8 @@ class ThongTinCaNhanGiangvien extends Component {
 
 
 export default withNavigation(ThongTinCaNhanGiangvien);
+
+
 
 
 

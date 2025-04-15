@@ -1,47 +1,64 @@
 import React, { Component } from "react";
 import {
+  AppBar,
   Box,
   Button,
+  Checkbox,
   Container,
   Divider,
+  Drawer,
   FormControl,
+  IconButton,
   InputLabel,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
   MenuItem,
+  Paper,
   Select,
-  TextField,
-  Typography,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  Stack,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
+  TextField,
+  Toolbar,
+  Typography,
 } from "@mui/material";
-
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import PersonIcon from "@mui/icons-material/Person";
-import QrCodeIcon from "@mui/icons-material/QrCode";
-import SearchIcon from "@mui/icons-material/Search";
-import Checkbox from "@mui/material/Checkbox";
-import HomeIcon from "@mui/icons-material/Home";
+import {
+  Assignment as AssignmentIcon,
+  CalendarMonth as CalendarMonthIcon,
+  Person as PersonIcon,
+  QrCode as QrCodeIcon,
+  Search as SearchIcon,
+  Home as HomeIcon,
+  Menu as MenuIcon,
+  QrCodeScanner as QrCodeScannerIcon,
+  Logout as LogoutIcon,
+} from "@mui/icons-material";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
-import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
-import LogoutIcon from "@mui/icons-material/Logout";
-class tracuuSV extends Component {
+import { useMediaQuery } from "@mui/material";
+
+// HOC để inject isMobile
+function withResponsive(Component) {
+  return function ResponsiveComponent(props) {
+    const isMobile = useMediaQuery("(max-width:600px)");
+    return <Component {...props} isMobile={isMobile} />;
+  };
+}
+
+class TracuuSV extends Component {
   constructor(props) {
     super(props);
     this.state = {
       semester: "Học kỳ 2 năm học 2025 - 2026",
       attendanceDate: "2025-03-19",
       selectedClass: "",
+      isDrawerOpen: false,
       students: [
         {
           id: 1,
@@ -67,206 +84,214 @@ class tracuuSV extends Component {
           present: false,
           coPhep: "",
         },
-        {
-          id: 4,
-          mssv: "DH52111467",
-          name: "Huỳnh Tấn Phát",
-          class: "DH21_TH12",
-          present: false,
-          coPhep: "",
-        },
-        {
-          id: 5,
-          mssv: "DH52111469",
-          name: "Lê Thành Phát",
-          class: "DH21_TH12",
-          present: false,
-          coPhep: "",
-        },
-        {
-          id: 6,
-          mssv: "DH52111506",
-          name: "Nguyễn Anh Phú",
-          class: "DH21_TH12",
-          present: false,
-          coPhep: "",
-        },
       ],
     };
   }
 
   handleMenuClick = (text) => {
-    if (text === "Thông Tin Giảng Viên") {
-      this.props.navigate("/thongtinGV");
-    } else if (text === "Homepage") {
-      this.props.navigate("/homepage");
-    } else if (text === "Lịch giảng dạy") {
-      this.props.navigate("/lichgiangday");
-    } else if (text === "Điểm Danh") {
-      this.props.navigate("/diemdanh");
-    } else if (text === "Xem Kết Quả Điểm Danh") {
-      this.props.navigate("/KQDiemDanh");
-    } else if (text === "Tra cứu Sinh Viên") {
-      this.props.navigate("/tracuu");
-    }
-    else if (text === "Đăng Xuất") {
-      this.props.navigate("/");
-    }
+    const { navigate } = this.props;
+    const routes = {
+      "Thông Tin Giảng Viên": "/thongtinGV",
+      Homepage: "/homepage",
+      "Lịch giảng dạy": "/lichgiangday",
+      "Điểm Danh": "/diemdanh",
+      "Xem Kết Quả Điểm Danh": "/KQDiemDanh",
+      "Tra cứu Sinh Viên": "/tracuu",
+      "Đăng Xuất": "/",
+    };
+    navigate(routes[text]);
+    this.setState({ isDrawerOpen: false });
   };
 
   handleCheckboxChange = (id) => {
-    this.setState((prevState) => ({
-      students: prevState.students.map((student) =>
-        student.id === id ? { ...student, present: !student.present } : student
+    this.setState((prev) => ({
+      students: prev.students.map((s) =>
+        s.id === id ? { ...s, present: !s.present } : s
       ),
     }));
   };
 
   handleAttendanceChange = (id, value) => {
-    this.setState((prevState) => ({
-      students: prevState.students.map((student) =>
-        student.id === id ? { ...student, coPhep: value } : student
+    this.setState((prev) => ({
+      students: prev.students.map((s) =>
+        s.id === id ? { ...s, coPhep: value } : s
       ),
     }));
   };
 
+  toggleDrawer = (open) => {
+    this.setState({ isDrawerOpen: open });
+  };
+
   render() {
-    const { semester, attendanceDate, selectedClass, students } = this.state;
+    const { isMobile } = this.props;
+    const { semester, attendanceDate, selectedClass, students, isDrawerOpen } = this.state;
 
     const menuItems = [
-      { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
-      { text: "Thông Tin Giảng Viên", icon: <PersonIcon fontSize="large" /> },
-      { text: "Lịch giảng dạy", icon: <CalendarMonthIcon fontSize="large" /> },
-      { text: "Điểm Danh", icon: <QrCodeIcon fontSize="large" /> },
-      { text: "Xem Kết Quả Điểm Danh", icon: <AssignmentIcon fontSize="large" /> },
-      { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon fontSize="large" /> },
-       { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
+      { text: "Homepage", icon: <HomeIcon /> },
+      { text: "Thông Tin Giảng Viên", icon: <PersonIcon /> },
+      { text: "Lịch giảng dạy", icon: <CalendarMonthIcon /> },
+      { text: "Điểm Danh", icon: <QrCodeIcon /> },
+      { text: "Xem Kết Quả Điểm Danh", icon: <AssignmentIcon /> },
+      { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon /> },
+      { text: "Đăng Xuất", icon: <LogoutIcon /> },
     ];
 
     return (
-      <Box display="flex" bgcolor="#f5f5f5" minHeight="110vh">
-        {/* Sidebar */}
-        <Box width={240} bgcolor="#2c3e50" p={2}>
-          <Box component="img" src={logo} width="100%" mb={4} borderRadius={2} />
-          <List>
-            {menuItems.map((item, index) => (
-              <ListItem
-                button
-                key={index}
-                onClick={() => this.handleMenuClick(item.text)}
-                sx={{
-                  mb: 1,
-                  borderRadius: 1,
-                  "&:hover": { backgroundColor: "#34495e" },
-                }}
+      <>
+        {/* AppBar cho mobile */}
+        {isMobile && (
+          <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+            <Toolbar>
+              <IconButton
+                edge="start"
+                color="inherit"
+                onClick={() => this.toggleDrawer(true)}
               >
-                <ListItemIcon sx={{ color: "white" }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} sx={{ color: "white" }} />
-              </ListItem>
-            ))}
-          </List>
-        </Box>
+                <MenuIcon />
+              </IconButton>
+              <Typography variant="h6"></Typography>
+            </Toolbar>
+          </AppBar>
+        )}
 
-        {/* Main Content */}
-        <Box flex={1} p={3}>
-          <Typography variant="h6" fontWeight={600} mb={2} borderBottom={1}>
-            Điểm Danh
-          </Typography>
+        {/* Layout */}
+        <Box display="flex" bgcolor="#f4f6f8" minHeight="100vh">
+          {/* Sidebar / Drawer */}
+          <Drawer
+            anchor="left"
+            open={isDrawerOpen || !isMobile}
+            onClose={() => this.toggleDrawer(false)}
+            variant={isMobile ? "temporary" : "permanent"}
+            sx={{
+              "& .MuiDrawer-paper": {
+                width: 240,
+                bgcolor: "#2c3e50",
+                color: "white",
+              },
+            }}
+          >
+            <Box p={2}>
+              <Box component="img" src={logo} width="100%" mb={3} borderRadius={2} />
+              <List>
+                {menuItems.map((item, i) => (
+                  <ListItem
+                    key={i}
+                    button
+                    onClick={() => this.handleMenuClick(item.text)}
+                    sx={{
+                      mb: 1,
+                      borderRadius: 1,
+                      "&:hover": { bgcolor: "#34495e" },
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: "white" }}>{item.icon}</ListItemIcon>
+                    <ListItemText primary={item.text} />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          </Drawer>
 
-          {/* Filters */}
-          <Stack direction="row" spacing={2} mb={2}>
-            <FormControl fullWidth>
-              <InputLabel>Chọn đợt</InputLabel>
-              <Select value={semester} label="Chọn đợt">
-                <MenuItem value={semester}>{semester}</MenuItem>
-              </Select>
-            </FormControl>
+          {/* Nội dung chính */}
+          <Box
+            flex={1}
+            p={3}
+            mt={isMobile ? 8 : 0}
+            sx={{ width: "100%" }}
+          >
+            <Typography variant="h6" fontWeight={600} mb={2}>
+              Điểm Danh Sinh Viên
+            </Typography>
+
+            {/* Bộ lọc */}
+            <Stack direction={isMobile ? "column" : "row"} spacing={2} mb={2}>
+              <FormControl fullWidth>
+                <InputLabel>Chọn đợt</InputLabel>
+                <Select value={semester}>
+                  <MenuItem value={semester}>{semester}</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                fullWidth
+                type="date"
+                label="Ngày điểm danh"
+                value={attendanceDate}
+                onChange={(e) => this.setState({ attendanceDate: e.target.value })}
+                InputLabelProps={{ shrink: true }}
+              />
+              <FormControl fullWidth>
+                <InputLabel>Lớp học phần</InputLabel>
+                <Select
+                  value={selectedClass}
+                  onChange={(e) => this.setState({ selectedClass: e.target.value })}
+                >
+                  <MenuItem value="DH21_TH12">DH21_TH12</MenuItem>
+                </Select>
+              </FormControl>
+              <Button variant="contained">Tìm kiếm</Button>
+            </Stack>
+
+            {/* Tìm kiếm */}
             <TextField
               fullWidth
-              label="Ngày Điểm Danh"
-              type="date"
-              value={attendanceDate}
-              onChange={(e) => this.setState({ attendanceDate: e.target.value })}
-              InputLabelProps={{ shrink: true }}
+              size="small"
+              variant="outlined"
+              placeholder="Tìm kiếm sinh viên..."
+              sx={{ backgroundColor: "#e0e0e0", mb: 2 }}
+              InputProps={{
+                startAdornment: <SearchIcon sx={{ mr: 1 }} />,
+              }}
             />
-            <FormControl fullWidth>
-              <InputLabel>Chọn lớp học phần</InputLabel>
-              <Select
-                value={selectedClass}
-                onChange={(e) => this.setState({ selectedClass: e.target.value })}
-                label="Chọn lớp học phần"
-              >
-                <MenuItem value="DH21_TH12">Xây dựng phần mềm Web</MenuItem>
-              </Select>
-            </FormControl>
-            <Button variant="contained">Tìm Kiếm</Button>
-          </Stack>
 
-          {/* Nhóm tiết học */}
-          <Stack direction="row" spacing={1} mb={2}>
-            {["Nhóm 5", "Nhóm 1", "Nhóm 2", "Nhóm 3", "Nhóm 4"].map((group, idx) => (
-              <Button key={idx} variant="outlined">{`${group} - Tiết 1 ➝ 5`}</Button>
-            ))}
-          </Stack>
-
-          {/* Ô tìm kiếm */}
-          <TextField
-            variant="outlined"
-            placeholder="Tìm Kiếm Sinh Viên"
-            fullWidth
-            size="small"
-            sx={{ backgroundColor: "#e0e0e0", mb: 2 }}
-            InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1 }} /> }}
-          />
-
-          {/* Table */}
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>STT</TableCell>
-                  <TableCell>Điểm Danh</TableCell>
-                  <TableCell>MSSV</TableCell>
-                  <TableCell>Họ Tên</TableCell>
-                  <TableCell>Lớp Học</TableCell>
-                  <TableCell>Có Phép</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {students.map((student, index) => (
-                  <TableRow key={student.id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>
-                      <Checkbox
-                        checked={student.present}
-                        onChange={() => this.handleCheckboxChange(student.id)}
-                        color="primary"
-                      />
-                    </TableCell>
-                    <TableCell>{student.mssv}</TableCell>
-                    <TableCell>{student.name}</TableCell>
-                    <TableCell>{student.class}</TableCell>
-                    <TableCell>
-                      <Select
-                        size="small"
-                        value={student.coPhep || ""}
-                        onChange={(e) =>
-                          this.handleAttendanceChange(student.id, e.target.value)
-                        }
-                      >
-                        <MenuItem value="Có">Có</MenuItem>
-                        <MenuItem value="Không">Không</MenuItem>
-                      </Select>
-                    </TableCell>
+            {/* Bảng sinh viên */}
+            <TableContainer component={Paper}>
+              <Table size={isMobile ? "small" : "medium"}>
+                <TableHead sx={{ backgroundColor: "#f0f0f0" }}>
+                  <TableRow>
+                    <TableCell>STT</TableCell>
+                    <TableCell>Điểm Danh</TableCell>
+                    <TableCell>MSSV</TableCell>
+                    {!isMobile && <TableCell>Họ tên</TableCell>}
+                    <TableCell>Lớp</TableCell>
+                    <TableCell>Có phép</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {students.map((s, i) => (
+                    <TableRow key={s.id}>
+                      <TableCell>{i + 1}</TableCell>
+                      <TableCell>
+                        <Checkbox
+                          checked={s.present}
+                          onChange={() => this.handleCheckboxChange(s.id)}
+                        />
+                      </TableCell>
+                      <TableCell>{s.mssv}</TableCell>
+                      {!isMobile && <TableCell>{s.name}</TableCell>}
+                      <TableCell>{s.class}</TableCell>
+                      <TableCell>
+                        <Select
+                          size="small"
+                          value={s.coPhep}
+                          onChange={(e) =>
+                            this.handleAttendanceChange(s.id, e.target.value)
+                          }
+                        >
+                          <MenuItem value="Có">Có</MenuItem>
+                          <MenuItem value="Không">Không</MenuItem>
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
         </Box>
-      </Box>
+      </>
     );
   }
 }
 
-export default withNavigation(tracuuSV);
+export default withNavigation(withResponsive(TracuuSV));

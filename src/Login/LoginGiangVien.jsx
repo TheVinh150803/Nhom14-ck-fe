@@ -97,7 +97,7 @@ class LoginGiangVien extends Component {
       if (data.canlogin) {
         alert("Đăng nhập thành công!");
         localStorage.setItem("token", data.token);
-        this.props.navigate("/thongtinGV");
+        this.props.navigate("/homepage");
       } else {
         alert("Sai tên đăng nhập hoặc mật khẩu");
       }
