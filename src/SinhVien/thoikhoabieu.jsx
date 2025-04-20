@@ -7,52 +7,108 @@ import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
-import LogoutIcon from "@mui/icons-material/Logout";
+import axios from "axios";
+
 class ThoiKhoaBieu extends Component {
   constructor(props) {
     super(props);
     this.state = {
       selectedSemester: "HK1",
-      schedule: [
-        {
-          id: "CS030319",
-          subject: "Thực Hành Lập Trình Web",
-          namhoc: 19,
-          sotiet: 30,
-          tietbatdau: 10,
-          tietketthuc: 12,
-          phong: "PM05",
-          giangvien: "Nguyễn Trọng Nghĩa",
-          thoigian: "2024-10-07 - 2024-12-15",
-        },
-      ],
+      schedule: [],
+      error: null,
+      loading: true,
     };
   }
 
+  componentDidMount() {
+    this.fetchSchedule();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.location !== this.props.location) {
+      this.fetchSchedule();
+    }
+  }
+
+  fetchSchedule = async () => {
+    this.setState({ loading: true, error: null });
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        this.setState({
+          error: "Bạn cần đăng nhập để xem thời khóa biểu",
+          loading: false,
+        });
+        this.props.navigate("/");
+        return;
+      }
+
+      const response = await axios.get("http://127.0.0.1:8000/api/thoikhoabieu", {
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        params: {
+          hocky: this.state.selectedSemester,
+        },
+      });
+
+      if (response.data.status === "success") {
+        const scheduleData = response.data.data.map(item => ({
+          id: item.ma_mon_hoc,
+          subject: item.ten_mon_hoc,
+          namhoc: item.nhom_mon_hoc,
+          sotiet: item.so_tiet,
+          tietbatdau: item.tiet_bat_dau,
+          tietketthuc: item.tiet_ket_thuc,
+          phong: item.phong,
+          giangvien: item.giang_vien,
+          thoigian: item.thoi_gian,
+        }));
+
+        this.setState({ schedule: scheduleData, error: null, loading: false });
+      } else {
+        this.setState({
+          error: response.data.message || "Không thể lấy thời khóa biểu",
+          loading: false,
+        });
+      }
+    } catch (error) {
+      console.error("Lỗi khi gọi API:", error.response || error.message);
+      this.setState({
+        error: error.response?.data?.message || "Không thể lấy dữ liệu thời khóa biểu. Vui lòng thử lại.",
+        loading: false,
+      });
+
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("sinhVien");
+        this.props.navigate("/");
+      }
+    }
+  };
+
   handleSemesterChange = (event) => {
-    this.setState({ selectedSemester: event.target.value });
+    const newSemester = event.target.value;
+    this.setState({ selectedSemester: newSemester }, () => {
+      this.fetchSchedule();
+    });
   };
 
   handleMenuClick = (text) => {
     if (text === "Quét Mã điểm danh") {
       console.log("Quét Mã điểm danh clicked");
       this.props.navigate("/quetmaqr");
-    }else if (text === "QR điểm danh") {
-      this.props.navigate("/maqrdiemdanh");
-    } 
-    else if (text === "Thông tin cá nhân") {
+    } else if (text === "Thông tin cá nhân") {
       console.log("Thông tin cá nhân clicked");
       this.props.navigate("/thongtinSV");
     } else if (text === "Thời khóa biểu") {
       console.log("Thời khóa biểu clicked");
       this.props.navigate("/thoikhoabieu");
-    }
-    else if (text === "Kết quả điểm danh") {
+    } else if (text === "Kết quả điểm danh") {
       console.log("Kết quả điểm danh clicked");
       this.props.navigate("/ketquadiemdanh");
-    }
-    else if (text === "Đăng Xuất") {
-      this.props.navigate("/");
     }
   };
 
@@ -63,12 +119,10 @@ class ThoiKhoaBieu extends Component {
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
       { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
-      { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
     return (
       <Box display="flex" height="100vh">
-        {/* Sidebar */}
         <Box width={240} bgcolor="primary.main" p={2} color="white">
           <Box component="img" src={logo} width="100%" mb={4} />
           <List>
@@ -81,54 +135,71 @@ class ThoiKhoaBieu extends Component {
           </List>
         </Box>
 
-        {/* Main Content */}
         <Container sx={{ flex: 1, p: 4 }}>
           <Typography variant="h4" textAlign="center" mb={2}>
             Thời Khóa Biểu Cá Nhân
           </Typography>
           <Divider sx={{ mb: 3 }} />
 
-          {/* Dropdown chọn học kỳ */}
-          <Box mb={3}>
-            <Select value={this.state.selectedSemester} onChange={this.handleSemesterChange} fullWidth>
-              <MenuItem value="HK1">TKB học kỳ cá nhân</MenuItem>
-              <MenuItem value="HK2">Học kỳ 2</MenuItem>
-            </Select>
-          </Box>
+          {this.state.error && (
+            <Typography color="error" mb={2}>
+              {this.state.error}
+            </Typography>
+          )}
 
-          {/* Bảng thời khóa biểu */}
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Mã Môn Học</TableCell>
-                  <TableCell>Tên Môn Học</TableCell>
-                  <TableCell>NMH</TableCell>
-                  <TableCell>Số Tiết</TableCell>
-                  <TableCell>Tiết Bắt Đầu</TableCell>
-                  <TableCell>Tiết Kết Thúc</TableCell>
-                  <TableCell>Phòng</TableCell>
-                  <TableCell>Giảng Viên</TableCell>
-                  <TableCell>Thời Gian</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {this.state.schedule.map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{row.id}</TableCell>
-                    <TableCell>{row.subject}</TableCell>
-                    <TableCell>{row.namhoc}</TableCell>
-                    <TableCell>{row.sotiet}</TableCell>
-                    <TableCell>{row.tietbatdau}</TableCell>
-                    <TableCell>{row.tietketthuc}</TableCell>
-                    <TableCell>{row.phong}</TableCell>
-                    <TableCell>{row.giangvien}</TableCell>
-                    <TableCell>{row.thoigian}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          {this.state.loading ? (
+            <Typography textAlign="center">Đang tải thời khóa biểu...</Typography>
+          ) : (
+            <>
+              <Box mb={3}>
+                <Select value={this.state.selectedSemester} onChange={this.handleSemesterChange} fullWidth>
+                  <MenuItem value="HK1">Học kỳ 1</MenuItem>
+                  <MenuItem value="HK2">Học kỳ 2</MenuItem>
+                </Select>
+              </Box>
+
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Mã Môn Học</TableCell>
+                      <TableCell>Tên Môn Học</TableCell>
+                      <TableCell>NMH</TableCell>
+                      <TableCell>Số Tiết</TableCell>
+                      <TableCell>Tiết Bắt Đầu</TableCell>
+                      <TableCell>Tiết Kết Thúc</TableCell>
+                      <TableCell>Phòng</TableCell>
+                      <TableCell>Giảng Viên</TableCell>
+                      <TableCell>Thời Gian</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {this.state.schedule.length > 0 ? (
+                      this.state.schedule.map((row, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{row.id}</TableCell>
+                          <TableCell>{row.subject}</TableCell>
+                          <TableCell>{row.namhoc}</TableCell>
+                          <TableCell>{row.sotiet}</TableCell>
+                          <TableCell>{row.tietbatdau}</TableCell>
+                          <TableCell>{row.tietketthuc}</TableCell>
+                          <TableCell>{row.phong}</TableCell>
+                          <TableCell>{row.giangvien}</TableCell>
+                          <TableCell>{row.thoigian}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={9} align="center">
+                          Không có dữ liệu thời khóa biểu
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </>
+          )}
         </Container>
       </Box>
     );

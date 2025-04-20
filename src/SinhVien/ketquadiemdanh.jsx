@@ -23,33 +23,91 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
-import withNavigation from "./withNavigation"; // 👈 Thêm dòng này
-import LogoutIcon from "@mui/icons-material/Logout";
+import withNavigation from "./withNavigation";
+import axios from "axios";
+
 class KetQuaDiemDanh extends Component {
   constructor(props) {
     super(props);
     this.state = {
       selectedSubject: null,
-      attendanceRecords: [
-        {
-          subject: "Thực Hành Lập Trình Web",
-          date: "2024-03-28",
-          students: [
-            { id: "SV001", name: "Nguyễn Văn A", status: "Có mặt" },
-            { id: "SV002", name: "Trần Thị B", status: "Vắng mặt" },
-          ],
-        },
-        {
-          subject: "Xây Dựng Phần Mềm Web",
-          date: "2024-03-28",
-          students: [
-            { id: "SV003", name: "Lê Văn C", status: "Có mặt" },
-            { id: "SV004", name: "Phạm Thị D", status: "Có mặt" },
-          ],
-        },
-      ],
+      attendanceRecords: [],
+      error: null,
     };
   }
+
+  componentDidMount() {
+    const sinhVien = JSON.parse(localStorage.getItem("sinhVien"));
+    const token = localStorage.getItem("token");
+
+    if (!sinhVien || !token) {
+      this.props.navigate("/");
+      return;
+    }
+
+    this.fetchAttendanceRecords(sinhVien.id_sinhvien, token);
+  }
+
+  fetchAttendanceRecords = async (id_sinhvien, token) => {
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/api/attendance-records`,
+        {
+          params: { id_sinhvien },
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status === "success") {
+        // Chuyển đổi dữ liệu từ API thành định dạng phù hợp
+        const records = response.data.data.reduce((acc, record) => {
+          // Nếu có bảng lophoc, dùng ten_lophoc; nếu không, dùng phonghoc
+          const subject = record.buoi_hoc.lop_hoc?.ten_lophoc || record.buoi_hoc.phonghoc || `Buổi học ${record.buoi_hoc.id_buoihoc}`;
+          const date = record.buoi_hoc.ngayhoc;
+          const student = {
+            id: record.sinh_vien.mssv,
+            name: record.sinh_vien.name_sinhvien,
+            status: record.trangthai_diemdanh ? "Có mặt" : "Vắng mặt",
+          };
+
+          // Tìm xem đã có bản ghi cho môn học và ngày này chưa
+          const existingRecord = acc.find(
+            (r) => r.subject === subject && r.date === date
+          );
+
+          if (existingRecord) {
+            existingRecord.students.push(student);
+          } else {
+            acc.push({
+              subject,
+              date,
+              students: [student],
+            });
+          }
+
+          return acc;
+        }, []);
+
+        this.setState({ attendanceRecords: records, error: null });
+      } else {
+        this.setState({ error: response.data.message || "Không thể lấy kết quả điểm danh" });
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy kết quả điểm danh:", error.response || error.message);
+      this.setState({
+        error: error.response?.data?.message || "Không thể lấy kết quả điểm danh. Vui lòng thử lại.",
+      });
+
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("sinhVien");
+        this.props.navigate("/");
+      }
+    }
+  };
 
   handleViewDetails = (subject) => {
     this.setState({ selectedSubject: subject });
@@ -59,28 +117,20 @@ class KetQuaDiemDanh extends Component {
     if (text === "Quét Mã điểm danh") {
       console.log("Quét Mã điểm danh clicked");
       this.props.navigate("/quetmaqr");
-    }else if (text === "QR điểm danh") {
-      this.props.navigate("/maqrdiemdanh");
-    } 
-    else if (text === "Thông tin cá nhân") {
+    } else if (text === "Thông tin cá nhân") {
       console.log("Thông tin cá nhân clicked");
       this.props.navigate("/thongtinSV");
     } else if (text === "Thời khóa biểu") {
       console.log("Thời khóa biểu clicked");
       this.props.navigate("/thoikhoabieu");
-    }
-    else if (text === "Kết quả điểm danh") {
+    } else if (text === "Kết quả điểm danh") {
       console.log("Kết quả điểm danh clicked");
       this.props.navigate("/ketquadiemdanh");
     }
-    else if (text === "Đăng Xuất") {
-      this.props.navigate("/");
-    }
   };
-  
 
   render() {
-    const { selectedSubject, attendanceRecords } = this.state;
+    const { selectedSubject, attendanceRecords, error } = this.state;
 
     const menuItems = [
       { text: "Thông tin cá nhân", icon: <PersonIcon fontSize="large" /> },
@@ -88,7 +138,6 @@ class KetQuaDiemDanh extends Component {
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
       { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
-      { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
     return (
@@ -116,6 +165,12 @@ class KetQuaDiemDanh extends Component {
             Kết Quả Điểm Danh
           </Typography>
           <Divider sx={{ mb: 3 }} />
+
+          {error && (
+            <Typography color="error" mb={2} textAlign="center">
+              {error}
+            </Typography>
+          )}
 
           {selectedSubject ? (
             <>
@@ -164,21 +219,29 @@ class KetQuaDiemDanh extends Component {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {attendanceRecords.map((record, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{record.subject}</TableCell>
-                      <TableCell>{record.date}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          color="secondary"
-                          onClick={() => this.handleViewDetails(record.subject)}
-                        >
-                          Xem kết quả
-                        </Button>
+                  {attendanceRecords.length > 0 ? (
+                    attendanceRecords.map((record, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{record.subject}</TableCell>
+                        <TableCell>{record.date}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="contained"
+                            color="secondary"
+                            onClick={() => this.handleViewDetails(record.subject)}
+                          >
+                            Xem kết quả
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} align="center">
+                        Chưa có dữ liệu điểm danh
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>

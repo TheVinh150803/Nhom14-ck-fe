@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Container,
-  Divider,
   FormControl,
   InputLabel,
   MenuItem,
@@ -23,6 +22,7 @@ import {
   ListItemIcon,
   ListItemText,
   Dialog,
+  Checkbox,
 } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
@@ -34,8 +34,6 @@ import withNavigation from "./withNavigation";
 import HomeIcon from "@mui/icons-material/Home";
 import LogoutIcon from "@mui/icons-material/Logout";
 import axios from "axios";
-import { QRCodeCanvas } from "qrcode.react";
-
 
 class DiemDanhGV extends Component {
   constructor(props) {
@@ -45,60 +43,39 @@ class DiemDanhGV extends Component {
       attendanceDate: "2025-03-19",
       selectedClass: "",
       students: [
-        { id: 1, mssv: "DH52112086", name: "Nguyễn Trần Thế Vinh", class: "DH21_TH12", coPhep: "" },
-        { id: 2, mssv: "DH52152145", name: "Huỳnh Đại Thắng", class: "DH21_TH12", coPhep: "" },
-        { id: 3, mssv: "DH52112086", name: "Nguyễn Nhật Phi", class: "DH21_TH12", coPhep: "" },
-        { id: 4, mssv: "DH52111467", name: "Huỳnh Tấn Phát", class: "DH21_TH12", coPhep: "" },
-        { id: 5, mssv: "DH52111469", name: "Lê Thành Phát", class: "DH21_TH12", coPhep: "" },
-        { id: 6, mssv: "DH52111506", name: "Nguyễn Anh Phú", class: "DH21_TH12", coPhep: "" },
+        { id: 1, mssv: "DH52112086", name: "Nguyễn Trần Thế Vinh", class: "DH21_TH12", status: "" },
+        { id: 2, mssv: "DH52152145", name: "Huỳnh Đại Thắng", class: "DH21_TH12", status: "" },
+        { id: 3, mssv: "DH52112086", name: "Nguyễn Nhật Phi", class: "DH21_TH12", status: "" },
+        { id: 4, mssv: "DH52111467", name: "Huỳnh Tấn Phát", class: "DH21_TH12", status: "" },
+        { id: 5, mssv: "DH52111469", name: "Lê Thành Phát", class: "DH21_TH12", status: "" },
+        { id: 6, mssv: "DH52111506", name: "Nguyễn Anh Phú", class: "DH21_TH12", status: "" },
       ],
       qrCodeData: null,
-      isLoadingQRCode: false, // Add loading state
-      qrDialogOpen: false,
+      isLoadingQRCode: false,
+      openQRCodeDialog: false,
     };
   }
 
-
   handleMenuClick = (text) => {
-    if (text === "Thông Tin Giảng Viên") {
-      this.props.navigate("/thongtinGV");
-    }
-    else if (text === "Homepage") {
-      this.props.navigate("/homepage");
-    }
-    else if (text === "Lịch giảng dạy") {
-      this.props.navigate("/lichgiangday");
-    }
-    else if (text === "Điểm Danh") {
-      this.props.navigate("/diemdanh");
-    } else if (text === "Xem Kết Quả Điểm Danh") {
-      this.props.navigate("/KQDiemDanh");
-    } else if (text === "Tra cứu Sinh Viên") {
-      this.props.navigate("/tracuu");
-    }
-    else if (text === "Đăng Xuất") {
-      this.props.navigate("/");
-    }
+    const routes = {
+      "Thông Tin Giảng Viên": "/thongtinGV",
+      "Homepage": "/homepage",
+      "Lịch giảng dạy": "/lichgiangday",
+      "Điểm Danh": "/diemdanh",
+      "Xem Kết Quả Điểm Danh": "/KQDiemDanh",
+      "Tra cứu Sinh Viên": "/tracuu",
+      "Đăng Xuất": "/",
+    };
+    if (routes[text]) this.props.navigate(routes[text]);
   };
-
-
-  handleAttendanceChange = (id, value) => {
-    this.setState(prevState => ({
-      students: prevState.students.map(student =>
-        student.id === id ? { ...student, coPhep: value } : student
-      ),
-    }));
-  };
-
 
   handleStatusChange = (id, value) => {
-    this.setState(prevState => ({
-      students: prevState.students.map(student =>
+    this.setState((prevState) => ({
+      students: prevState.students.map((student) =>
         student.id === id ? { ...student, status: value } : student
       ),
     }));
   };
-
 
   handleGenerateQRCode = async () => {
     const { selectedClass } = this.state;
@@ -107,17 +84,14 @@ class DiemDanhGV extends Component {
       return;
     }
 
-
     this.setState({ isLoadingQRCode: true, qrCodeData: null });
 
-
     try {
-      const response = await axios.get(`https://webdiemdanh-1.onrender.com/api/diemdanh/tao-qrcode/${selectedClass}`, {
-        headers: { Accept: "image/svg+xml" },
-      });
-
-
-      this.setState({ qrCodeData: response.data, qrDialogOpen: true });
+      const response = await axios.get(
+        `https://webdiemdanh-1.onrender.com/api/diemdanh/tao-qrcode/${selectedClass}`,
+        { headers: { Accept: "image/svg+xml" } }
+      );
+      this.setState({ qrCodeData: response.data, openQRCodeDialog: true });
     } catch (error) {
       console.error("Lỗi tạo mã QR:", error);
       alert("Không thể tạo mã QR. Vui lòng thử lại.");
@@ -126,12 +100,24 @@ class DiemDanhGV extends Component {
     }
   };
 
+  handleOpenQRCodeDialog = () => {
+    this.setState({ openQRCodeDialog: true });
+  };
 
-
+  handleCloseQRCodeDialog = () => {
+    this.setState({ openQRCodeDialog: false });
+  };
 
   render() {
-    const { semester, attendanceDate, selectedClass, students, qrCodeData, isLoadingQRCode } = this.state;
-
+    const {
+      semester,
+      attendanceDate,
+      selectedClass,
+      students,
+      qrCodeData,
+      isLoadingQRCode,
+      openQRCodeDialog,
+    } = this.state;
 
     const menuItems = [
       { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
@@ -142,7 +128,6 @@ class DiemDanhGV extends Component {
       { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon fontSize="large" /> },
       { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
-
 
     return (
       <Box display="flex" height="110vh" bgcolor="#f4f6f8">
@@ -168,13 +153,11 @@ class DiemDanhGV extends Component {
           </List>
         </Box>
 
-
         {/* Main Content */}
         <Container sx={{ flex: 1, py: 4 }}>
           <Typography variant="h5" fontWeight={600} mb={2}>
             Điểm Danh
           </Typography>
-
 
           {/* Filters */}
           <Stack direction="row" spacing={2} mb={2}>
@@ -192,10 +175,6 @@ class DiemDanhGV extends Component {
               onChange={(e) => this.setState({ attendanceDate: e.target.value })}
               InputLabelProps={{ shrink: true }}
             />
-
-
-            {/* Lớp học phần */}
-            {/* abc */}
             <FormControl fullWidth>
               <InputLabel>Chọn lớp học phần</InputLabel>
               <Select
@@ -208,11 +187,7 @@ class DiemDanhGV extends Component {
                 <MenuItem value="3">XDPMW nhóm 4 tiết 1-5</MenuItem>
               </Select>
             </FormControl>
-            <Button variant="contained" sx={{ whiteSpace: "nowrap" }}>
-              Tìm Kiếm
-            </Button>
           </Stack>
-
 
           {/* Action Buttons */}
           <Stack direction="row" spacing={2} mb={2}>
@@ -227,20 +202,29 @@ class DiemDanhGV extends Component {
             </Button>
           </Stack>
 
-
-          {/* QR Code Display */}
-          <Box mt={2} display="flex" justifyContent="center">
-            {isLoadingQRCode ? (
-              <Typography>Đang tạo mã QR...</Typography>
-            ) : qrCodeData ? (
-              <div dangerouslySetInnerHTML={{ __html: qrCodeData }} />
-            ) : (
-              <Typography>Nhấn "QR Điểm Danh" để tạo mã QR.</Typography>
-            )}
-          </Box>
-
-
-
+          {/* QR Dialog */}
+          <Dialog
+            open={openQRCodeDialog}
+            onClose={this.handleCloseQRCodeDialog}
+            maxWidth="sm"
+            fullWidth
+          >
+            <Box p={3} display="flex" flexDirection="column" alignItems="center">
+              <Typography variant="h6" mb={2}>
+                Mã QR Điểm Danh
+              </Typography>
+              {isLoadingQRCode ? (
+                <Typography>Đang tạo mã QR...</Typography>
+              ) : qrCodeData ? (
+                <div dangerouslySetInnerHTML={{ __html: qrCodeData }} />
+              ) : (
+                <Typography>Lỗi tạo mã QR.</Typography>
+              )}
+              <Button onClick={this.handleCloseQRCodeDialog} sx={{ mt: 2 }} variant="contained">
+                Đóng
+              </Button>
+            </Box>
+          </Dialog>
 
           {/* Table */}
           <TableContainer component={Paper}>
@@ -252,7 +236,6 @@ class DiemDanhGV extends Component {
                   <TableCell>MSSV</TableCell>
                   <TableCell>Họ Tên</TableCell>
                   <TableCell>Lớp Học</TableCell>
-                  <TableCell>Có Phép</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -260,29 +243,17 @@ class DiemDanhGV extends Component {
                   <TableRow key={student.id}>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell>
-                      <Select
-                        size="small"
-                        value={student.status || ""}
-                        onChange={(e) => this.handleStatusChange(student.id, e.target.value)}
-                      >
-                        <MenuItem value="Có mặt">Có mặt</MenuItem>
-                        <MenuItem value="Vắng">Vắng</MenuItem>
-                        <MenuItem value="Trễ">Trễ</MenuItem>
-                      </Select>
+                      <Checkbox
+                        checked={student.status === "Có mặt"}
+                        onChange={(e) =>
+                          this.handleStatusChange(student.id, e.target.checked ? "Có mặt" : "Vắng")
+                        }
+                        color="primary"
+                      />
                     </TableCell>
                     <TableCell>{student.mssv}</TableCell>
                     <TableCell>{student.name}</TableCell>
                     <TableCell>{student.class}</TableCell>
-                    <TableCell>
-                      <Select
-                        size="small"
-                        value={student.coPhep || ""}
-                        onChange={(e) => this.handleAttendanceChange(student.id, e.target.value)}
-                      >
-                        <MenuItem value="Có">Có</MenuItem>
-                        <MenuItem value="Không">Không</MenuItem>
-                      </Select>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -293,6 +264,5 @@ class DiemDanhGV extends Component {
     );
   }
 }
-
 
 export default withNavigation(DiemDanhGV);

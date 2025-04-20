@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import {
   Box,
@@ -8,19 +8,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom"; // Import useNavigate hook
+import { useNavigate } from "react-router-dom";
 import schoolImage from "../img/anhtruong.jpg";
 import logo from "../img/logo.jpg";
 
-
-
-
-// Tạo nút chuyển hướng
+// Component cho nút chuyển hướng
 const NavigateButtons = () => {
   const navigate = useNavigate();
-
-
-
 
   return (
     <Box sx={{ display: "flex", gap: "10px", marginTop: "15px" }}>
@@ -38,186 +32,146 @@ const NavigateButtons = () => {
   );
 };
 
+const LoginGiangVien = () => {
+  const [Magiangvien, setMagiangvien] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-
-
-
-
-
-
-function withRouter(Component) {
-  return function (props) {
-    const navigate = useNavigate();
-    return <Component {...props} navigate={navigate} />;
-  };
-}
-
-
-
-
-class LoginGiangVien extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      Magiangvien: "", // Thêm thuộc tính cho username
-      password: "",  // Thêm thuộc tính cho password
-    };
-  }
-
-
-
-
-  handleUsernameChange = (event) => {
-    this.setState({ Magiangvien: event.target.value });
+  const handleUsernameChange = (event) => {
+    setMagiangvien(event.target.value);
   };
 
-
-
-
-  handlePasswordChange = (event) => {
-    this.setState({ password: event.target.value });
+  const handlePasswordChange = (event) => {
+    setPassword(event.target.value);
   };
 
-
-
-
-  handleLogin = async () => {
-    const { Magiangvien, password } = this.state;
-
-
-
-
+  const handleLogin = async () => {
     try {
-      const response = await axios.post("https://webdiemdanh-1.onrender.com/api/giangvien/dangnhap", {
-        Magiangvien,
-        password,
-      });
-      console.log(response);
+      const response = await axios.post(
+        "https://webdiemdanh-1.onrender.com/api/giangvien/dangnhap",
+        {
+          Magiangvien,
+          password,
+        }
+      );
       const data = response.data;
       if (data.canlogin) {
         alert("Đăng nhập thành công!");
         localStorage.setItem("token", data.token);
-        this.props.navigate("/homepage");
+        navigate("/homepage");
       } else {
-        alert("Sai tên đăng nhập hoặc mật khẩu");
+        setError(data.message || "Sai MSSV hoặc mật khẩu");
       }
     } catch (error) {
       console.error("Lỗi đăng nhập", error);
-      alert("Lỗi hệ thống hoặc kết nối");
+      setError("Lỗi hệ thống hoặc kết nối. Vui lòng thử lại!");
     }
   };
 
-
-
-
-  render() {
-    const { Magiangvien, password } = this.state;
-
-
-
-
-    return (
-      <Container
-        maxWidth={false}
+  return (
+    <Container
+      maxWidth={false}
+      sx={{
+        height: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Box
         sx={{
-          height: "100vh",
           display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          width: "900px",
+          height: "500px",
+          boxShadow: 3,
+          borderRadius: "10px",
+          overflow: "hidden",
+          bgcolor: "white",
         }}
       >
+        {/* Phần login */}
         <Box
           sx={{
+            width: "50%",
             display: "flex",
-            width: "900px",
-            height: "500px",
-            boxShadow: 3,
-            borderRadius: "10px",
-            overflow: "hidden",
-            bgcolor: "white",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "30px",
           }}
         >
-          {/* Phần login */}
           <Box
-            sx={{
-              width: "50%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "30px",
-            }}
-          >
-            <Box component="img" src={logo} alt="Logo" sx={{ width: "80px", height: "80px", mb: 2 }} />
-            <Typography variant="h5" fontWeight="bold" mb={2}>
-              LOGIN GIẢNG VIÊN
-            </Typography>
-
-
-
-
-            <TextField
-              fullWidth
-              label="Username"
-              variant="outlined"
-              value={Magiangvien}
-              onChange={this.handleUsernameChange}
-              sx={{ marginBottom: "15px" }}
-            />
-
-
-
-
-            <TextField
-              fullWidth
-              type="password"
-              label="Password"
-              variant="outlined"
-              value={password}
-              onChange={this.handlePasswordChange}
-              sx={{ marginBottom: "20px" }}
-            />
-
-
-
-
-            <Button
-              variant="contained"
-              onClick={this.handleLogin}
-              sx={{ width: "100%", padding: "10px", fontSize: "16px" }}
-            >
-              LOGIN Giảng Viên
-            </Button>
-
-
-
-
-            <NavigateButtons />
-          </Box>
-
-
-
-
-          <Divider orientation="vertical" flexItem sx={{ width: "3px", bgcolor: "gray" }} />
-
-
-
-
-          <Box
-            sx={{
-              width: "50%",
-              backgroundImage: `url(${schoolImage})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
+            component="img"
+            src={logo}
+            alt="Logo"
+            sx={{ width: "80px", height: "80px", mb: 2 }}
           />
+          <Typography variant="h5" fontWeight="bold" mb={2}>
+            LOGIN GIẢNG VIÊN
+          </Typography>
+
+          <TextField
+            fullWidth
+            label="Username"
+            variant="outlined"
+            value={Magiangvien}
+            onChange={handleUsernameChange}
+            sx={{ marginBottom: "15px" }}
+          />
+
+          <TextField
+            fullWidth
+            type="password"
+            label="Password"
+            variant="outlined"
+            value={password}
+            onChange={handlePasswordChange}
+            sx={{ marginBottom: "15px" }}
+          />
+
+          {/* Thông báo lỗi nằm dưới ô password */}
+          {error && (
+            <Typography
+              color="error"
+              sx={{
+                marginBottom: "15px",
+                textAlign: "center",
+                fontWeight: "500",
+              }}
+            >
+              {error}
+            </Typography>
+          )}
+
+          <Button
+            variant="contained"
+            onClick={handleLogin}
+            sx={{ width: "100%", padding: "10px", fontSize: "16px" }}
+          >
+            LOGIN Giảng Viên
+          </Button>
+
+          <NavigateButtons />
         </Box>
-      </Container>
-    );
-  }
-}
 
+        <Divider
+          orientation="vertical"
+          flexItem
+          sx={{ width: "3px", bgcolor: "gray" }}
+        />
 
+        <Box
+          sx={{
+            width: "50%",
+            backgroundImage: `url(${schoolImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+      </Box>
+    </Container>
+  );
+};
 
-
-export default withRouter(LoginGiangVien);
+export default LoginGiangVien;
