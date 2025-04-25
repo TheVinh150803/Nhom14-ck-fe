@@ -56,7 +56,7 @@ class ChinhSuaThongTinLopHoc extends Component {
 
   initializeState = () => {
     const { location } = this.props;
-
+//
     // Kiểm tra nếu quay lại từ ChinhSuaSinhVienVaoLopHoc
     if (location.state && location.state.classInfo && location.state.selectedStudents) {
       const { classInfo, selectedStudents, studentCount } = location.state;
