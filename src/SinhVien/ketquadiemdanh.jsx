@@ -25,6 +25,7 @@ import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
 import axios from "axios";
+import LogoutIcon from "@mui/icons-material/Logout"; 
 
 class KetQuaDiemDanh extends Component {
   constructor(props) {
@@ -45,15 +46,14 @@ class KetQuaDiemDanh extends Component {
       return;
     }
 
-    this.fetchAttendanceRecords(sinhVien.id_sinhvien, token);
+    this.fetchAttendanceRecords(token);
   }
 
-  fetchAttendanceRecords = async (id_sinhvien, token) => {
+  fetchAttendanceRecords = async (token) => {
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/api/attendance-records`,
+        "https://webdiemdanh-1.onrender.com/api/ketquadiemdanh",
         {
-          params: { id_sinhvien },
           headers: {
             "Accept": "application/json",
             "Authorization": `Bearer ${token}`,
@@ -64,8 +64,8 @@ class KetQuaDiemDanh extends Component {
       if (response.data.status === "success") {
         // Chuyển đổi dữ liệu từ API thành định dạng phù hợp
         const records = response.data.data.reduce((acc, record) => {
-          // Nếu có bảng lophoc, dùng ten_lophoc; nếu không, dùng phonghoc
-          const subject = record.buoi_hoc.lop_hoc?.ten_lophoc || record.buoi_hoc.phonghoc || `Buổi học ${record.buoi_hoc.id_buoihoc}`;
+          // Sử dụng name_monhoc từ mon_hoc
+          const subject = record.mon_hoc?.name_monhoc || `Môn học ${record.id_monhoc}`;
           const date = record.buoi_hoc.ngayhoc;
           const student = {
             id: record.sinh_vien.mssv,
@@ -112,6 +112,11 @@ class KetQuaDiemDanh extends Component {
   handleViewDetails = (subject) => {
     this.setState({ selectedSubject: subject });
   };
+  handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("sinhVien");
+    this.props.navigate("/");
+  };
 
   handleMenuClick = (text) => {
     if (text === "Quét Mã điểm danh") {
@@ -126,6 +131,8 @@ class KetQuaDiemDanh extends Component {
     } else if (text === "Kết quả điểm danh") {
       console.log("Kết quả điểm danh clicked");
       this.props.navigate("/ketquadiemdanh");
+    }else if (text === "Đăng xuất") {
+      this.handleLogout();
     }
   };
 
@@ -137,7 +144,7 @@ class KetQuaDiemDanh extends Component {
       { text: "Thời khóa biểu", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
-      { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
+      { text: "Đăng xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
     return (

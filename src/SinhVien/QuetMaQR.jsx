@@ -1,23 +1,13 @@
 import React, { Component } from "react";
-import {
-  Box,
-  Container,
-  Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Typography,
-  Button,
-} from "@mui/material";
+import { Html5QrcodeScanner } from "html5-qrcode";
+import { Box, Container, Divider, Typography, Button, List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import QrCodeIcon from "@mui/icons-material/QrCode";
-import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import LogoutIcon from "@mui/icons-material/Logout";  // Import LogoutIcon
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
-import { Html5QrcodeScanner } from "html5-qrcode";
 import axios from "axios";
 
 class QuetMaQR extends Component {
@@ -32,24 +22,12 @@ class QuetMaQR extends Component {
   }
 
   componentDidMount() {
-    const sinhVien = JSON.parse(localStorage.getItem("sinhVien"));
-    if (!sinhVien) {
-      this.props.navigate("/");
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (!prevState.isScanning && this.state.isScanning) {
-      this.scanner = new Html5QrcodeScanner(
-        "qr-reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        false
-      );
-
-      this.scanner.render(
-        (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
-        (error) => this.onScanFailure(error)
-      );
+    // Kiểm tra nếu không có token, điều hướng người dùng về trang đăng nhập
+    const token = localStorage.getItem("token");
+    if (!token) {
+      this.props.navigate("/"); // Điều hướng về trang đăng nhập
+    } else {
+      this.startScanner();
     }
   }
 
@@ -59,8 +37,18 @@ class QuetMaQR extends Component {
     }
   }
 
-  handleStartScanning = () => {
-    this.setState({ isScanning: true });
+  startScanner = () => {
+    if (this.scanner) {
+      this.scanner.clear();
+    }
+
+    this.scanner = new Html5QrcodeScanner(
+      "reader",
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      /* verbose= */ false
+    );
+    this.scanner.render(this.onScanSuccess, this.onScanFailure);
+    this.setState({ isScanning: true, error: null, scanResult: null });
   };
 
   onScanSuccess = async (decodedText, decodedResult) => {
@@ -74,19 +62,25 @@ class QuetMaQR extends Component {
 
     if (!token || !sinhVien) {
       this.setState({ error: "Bạn cần đăng nhập lại để tiếp tục" });
-      this.props.navigate("/");
+      this.props.navigate("/"); // Điều hướng về trang đăng nhập
+      return;
+    }
+
+    let qrData;
+    try {
+      qrData = JSON.parse(decodedText);
+      if (!qrData.id_buoihoc || !qrData.id_lophoc) {
+        throw new Error("Thiếu thông tin id_buoihoc hoặc id_lophoc trong mã QR");
+      }
+    } catch (error) {
+      this.setState({ error: "Mã QR không hợp lệ: " + error.message });
       return;
     }
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/attendance",
-        {
-          id_sinhvien: sinhVien.id_sinhvien,
-          id_buoihoc: decodedText,
-          time_diemdanh: new Date().toISOString(),
-          trangthai_diemdanh: 1,
-        },
+        "https://webdiemdanh-1.onrender.com/api/diemdanh",
+        { qr_data: decodedText },
         {
           headers: {
             "Accept": "application/json",
@@ -96,6 +90,8 @@ class QuetMaQR extends Component {
       );
 
       if (response.data.status === "success") {
+        this.setState({ error: null });
+        alert("Điểm danh thành công!");
         this.props.navigate("/ketquadiemdanh");
       } else {
         this.setState({ error: response.data.message || "Không thể ghi nhận điểm danh" });
@@ -110,54 +106,57 @@ class QuetMaQR extends Component {
       if (error.response?.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("sinhVien");
-        this.props.navigate("/");
+        this.props.navigate("/"); // Điều hướng về trang đăng nhập
       }
     }
   };
 
   onScanFailure = (error) => {
-    console.warn("Lỗi quét mã QR:", error);
+    console.warn(`Lỗi quét mã QR: ${error}`);
+    this.setState({ error: "Không thể quét mã QR. Vui lòng thử lại." });
+  };
+
+  handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("sinhVien");
+    this.props.navigate("/"); // Điều hướng về trang đăng nhập
   };
 
   handleMenuClick = (text) => {
-    if (text === "Quét Mã điểm danh") {
-      console.log("Quét Mã điểm danh clicked");
-      this.props.navigate("/quetmaqr");
-    } else if (text === "Thông tin cá nhân") {
-      console.log("Thông tin cá nhân clicked");
-      this.props.navigate("/thongtinSV");
-    } else if (text === "Thời khóa biểu") {
-      console.log("Thời khóa biểu clicked");
-      this.props.navigate("/thoikhoabieu");
-    } else if (text === "Kết quả điểm danh") {
-      console.log("Kết quả điểm danh clicked");
-      this.props.navigate("/ketquadiemdanh");
+    if (text === "Đăng xuất") {
+      this.handleLogout();
+    } else {
+      if (text === "Thông tin cá nhân") {
+        this.props.navigate("/thongtinSV");
+      } else if (text === "Thời khóa biểu") {
+        this.props.navigate("/thoikhoabieu");
+      } else if (text === "Kết quả điểm danh") {
+        this.props.navigate("/ketquadiemdanh");
+      } else if (text === "Quét Mã điểm danh") {
+        this.props.navigate("/quetmaqr");
+      }
     }
   };
+  
 
   render() {
+    const { scanResult, error, isScanning } = this.state;
+
     const menuItems = [
       { text: "Thông tin cá nhân", icon: <PersonIcon fontSize="large" /> },
       { text: "Thời khóa biểu", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
-      { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
+      { text: "Đăng xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
-
-    const { scanResult, error, isScanning } = this.state;
 
     return (
       <Box display="flex" height="100vh">
-        {/* Sidebar */}
-        <Box width={240} bgcolor="primary.main" p={2} color="white" sx={{ minHeight: "100vh" }}>
+        <Box width={240} bgcolor="primary.main" p={2} color="white">
           <Box component="img" src={logo} width="100%" mb={4} />
           <List>
             {menuItems.map((item, index) => (
-              <ListItem
-                button
-                key={index}
-                onClick={() => this.handleMenuClick(item.text)}
-              >
+              <ListItem button key={index} onClick={() => this.handleMenuClick(item.text)}>
                 <ListItemIcon sx={{ color: "white" }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} sx={{ color: "white" }} />
               </ListItem>
@@ -165,7 +164,6 @@ class QuetMaQR extends Component {
           </List>
         </Box>
 
-        {/* Main Content */}
         <Container sx={{ flex: 1, p: 4 }}>
           <Typography variant="h4" textAlign="center" mb={2}>
             Quét Mã Điểm Danh
@@ -179,25 +177,22 @@ class QuetMaQR extends Component {
           )}
 
           {scanResult && (
-            <Typography color="success.main" mb={2} textAlign="center">
+            <Typography color="green" mb={2} textAlign="center">
               Mã QR: {scanResult}
             </Typography>
           )}
 
-          {isScanning && (
-            <Box id="qr-reader" sx={{ maxWidth: 500, mx: "auto", mb: 3 }} />
-          )}
+          <Box id="reader" width="100%" sx={{ maxWidth: "400px", mx: "auto" }} />
 
-          <Box display="flex" justifyContent="center" mt={3}>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={this.handleStartScanning}
-              disabled={isScanning}
-            >
-              {isScanning ? "Đang quét..." : "Bật Camera"}
-            </Button>
-          </Box>
+          <Button
+            variant="contained"
+            color="secondary"
+            sx={{ mt: 2, display: "block", mx: "auto" }}
+            onClick={this.startScanner}
+            disabled={isScanning}
+          >
+            {isScanning ? "Đang quét..." : "Bật Camera để Quét Lại"}
+          </Button>
         </Container>
       </Box>
     );

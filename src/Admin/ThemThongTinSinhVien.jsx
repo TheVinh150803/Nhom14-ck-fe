@@ -21,33 +21,37 @@ import PersonIcon from "@mui/icons-material/Person";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import axios from "axios";
 
 class ThemThongTinSinhVien extends Component {
   constructor(props) {
     super(props);
     this.state = {
       student: {
-        id: "SV01",
-        username: "sv01",
-        name: "Nguyễn Văn A",
-        password: "password123",
-        className: "CTK42A",
-        birthday: "2000-01-01",
-        gender: "Nam",
-        address: "123 Lê Lợi, Đà Nẵng",
-        email: "vana@example.com",
-        phone: "0912345678",
+        mssv: "",
+        name_sinhvien: "",
+        lop_sinhvien: "",
+        gioitinh_sinhvien: "",
+        ngaysinh_sinhvien: "",
+        diachi_sinhvien: "",
+        email_sinhvien: "",
+        sdt_sinhvien: "",
+        password_sinhvien: "",
       },
+      error: null,
     };
   }
 
   handleMenuClick = (text) => {
     if (text === "Quản lý User") {
-      this.props.navigate("/QuanLyGiangVien");
+      this.props.navigate("/quanlysinhvien");
     } else if (text === "Quản lý lớp học") {
-      this.props.navigate("/QuanLyLopHoc");
-    } else if (text === "Danh sách môn học") {
-      this.props.navigate("/DanhSachMonHoc");
+      this.props.navigate("/quanlylophoc");
+    } else if (text === "Quản lý lịch học") {
+      this.props.navigate("/QuanLyLichHoc");
+    } else if (text === "Quản lý Môn Học") {
+      this.props.navigate("/quanlymonhoc");
     }
   };
 
@@ -60,20 +64,56 @@ class ThemThongTinSinhVien extends Component {
     });
   };
 
-  handleSave = () => {
-    // Lưu dữ liệu nếu cần xử lý thêm tại đây
-    this.props.navigate("/QuanLySinhVien");
+  handleSave = async () => {
+    try {
+      const token = localStorage.getItem("token"); // Sử dụng key "token"
+      if (!token) {
+        console.log("Token không tồn tại, chuyển hướng về đăng nhập");
+        this.props.navigate("/AdminLogin");
+        return;
+      }
+
+      const { student } = this.state;
+      const response = await axios.post(
+        "https://webdiemdanh-1.onrender.com/api/admin/themsinhvien", // Cập nhật URL API
+        {
+          mssv: student.mssv,
+          name_sinhvien: student.name_sinhvien,
+          sdt_sinhvien: student.sdt_sinhvien,
+          email_sinhvien: student.email_sinhvien,
+          password_sinhvien: student.password_sinhvien,
+          diachi_sinhvien: student.diachi_sinhvien,
+          gioitinh_sinhvien: student.gioitinh_sinhvien,
+          ngaysinh_sinhvien: student.ngaysinh_sinhvien,
+          lop_sinhvien: student.lop_sinhvien,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Thêm sinh viên thành công:", response.data);
+      this.props.navigate("/QuanLySinhVien");
+    } catch (error) {
+      console.error("Lỗi khi thêm sinh viên:", error.response);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        this.props.navigate("/login");
+      }
+      this.setState({
+        error: error.response?.data?.message || "Không thể thêm sinh viên",
+      });
+    }
   };
 
   render() {
-    const { student } = this.state;
+    const { student, error } = this.state;
     const menuItems = [
       { text: "Quản lý User", icon: <PersonIcon fontSize="large" /> },
       { text: "Quản lý lớp học", icon: <AssignmentIcon fontSize="large" /> },
-      {
-        text: "Danh sách môn học",
-        icon: <QrCodeScannerIcon fontSize="large" />,
-      },
+      { text: "Quản lý lịch học", icon: <QrCodeScannerIcon fontSize="large" /> },
+      { text: "Quản lý Môn Học", icon: <MenuBookIcon fontSize="large" /> },
     ];
 
     return (
@@ -101,6 +141,8 @@ class ThemThongTinSinhVien extends Component {
             Thêm thông tin sinh viên
           </Typography>
 
+          {error && <Typography color="error">{error}</Typography>}
+
           <Paper elevation={3} sx={{ p: 3 }}>
             <Grid container spacing={4}>
               {/* Left column */}
@@ -110,33 +152,33 @@ class ThemThongTinSinhVien extends Component {
                     <TextField
                       fullWidth
                       label="Mã sinh viên"
-                      value={student.id}
-                      onChange={this.handleChange("id")}
+                      value={student.mssv}
+                      onChange={this.handleChange("mssv")}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Họ và tên"
-                      value={student.name}
-                      onChange={this.handleChange("name")}
+                      value={student.name_sinhvien}
+                      onChange={this.handleChange("name_sinhvien")}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Tên lớp"
-                      value={student.className}
-                      onChange={this.handleChange("className")}
+                      value={student.lop_sinhvien}
+                      onChange={this.handleChange("lop_sinhvien")}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <InputLabel>Giới tính</InputLabel>
                       <Select
-                        value={student.gender}
+                        value={student.gioitinh_sinhvien}
                         label="Giới tính"
-                        onChange={this.handleChange("gender")}
+                        onChange={this.handleChange("gioitinh_sinhvien")}
                       >
                         <MenuItem value="Nam">Nam</MenuItem>
                         <MenuItem value="Nữ">Nữ</MenuItem>
@@ -149,32 +191,32 @@ class ThemThongTinSinhVien extends Component {
                       label="Ngày sinh"
                       type="date"
                       InputLabelProps={{ shrink: true }}
-                      value={student.birthday}
-                      onChange={this.handleChange("birthday")}
+                      value={student.ngaysinh_sinhvien}
+                      onChange={this.handleChange("ngaysinh_sinhvien")}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Địa chỉ"
-                      value={student.address}
-                      onChange={this.handleChange("address")}
+                      value={student.diachi_sinhvien}
+                      onChange={this.handleChange("diachi_sinhvien")}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Email"
-                      value={student.email}
-                      onChange={this.handleChange("email")}
+                      value={student.email_sinhvien}
+                      onChange={this.handleChange("email_sinhvien")}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label="Số điện thoại"
-                      value={student.phone}
-                      onChange={this.handleChange("phone")}
+                      value={student.sdt_sinhvien}
+                      onChange={this.handleChange("sdt_sinhvien")}
                     />
                   </Grid>
                 </Grid>
@@ -186,18 +228,10 @@ class ThemThongTinSinhVien extends Component {
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
-                      label="Tài khoản"
-                      value={student.username}
-                      onChange={this.handleChange("username")}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
                       label="Mật khẩu"
                       type="password"
-                      value={student.password}
-                      onChange={this.handleChange("password")}
+                      value={student.password_sinhvien}
+                      onChange={this.handleChange("password_sinhvien")}
                     />
                   </Grid>
                 </Grid>
@@ -212,6 +246,13 @@ class ThemThongTinSinhVien extends Component {
                 onClick={this.handleSave}
               >
                 Lưu thay đổi
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={() => this.props.navigate("/QuanLySinhVien")}
+              >
+                Quay lại
               </Button>
             </Box>
           </Paper>

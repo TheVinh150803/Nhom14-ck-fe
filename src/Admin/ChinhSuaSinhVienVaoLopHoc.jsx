@@ -26,16 +26,19 @@ import withNavigation from "./withNavigation";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import axios from "axios";
 
-class ThemSinhVienVaoLopHoc extends Component {
+class ChinhSuaSinhVienVaoLopHoc extends Component {
   constructor(props) {
     super(props);
     this.state = {
       semester: "",
       studentCount: 0,
-      classInfo: null,
+      className: "",
       searchQuery: "",
       studentList: [],
-      error: "",
+      selectedStudents: [],
+      subjectName: "",
+      lecturer: "",
+      classId: "", // Thêm state để lưu classId
     };
   }
 
@@ -45,44 +48,45 @@ class ThemSinhVienVaoLopHoc extends Component {
       this.props.navigate("/AdminLogin");
       return;
     }
-    this.fetchStudents();
 
     const { location } = this.props;
-    if (location.state) {
+    if (location.state && location.state.classInfo) {
+      const { classInfo, selectedStudents } = location.state;
       this.setState({
-        classInfo: location.state.classInfo,
-        studentCount: location.state.studentCount || 0,
+        className: classInfo.name_lophoc,
+        semester: classInfo.hocky,
+        selectedStudents: selectedStudents || [],
+        subjectName: classInfo.subjectName || "",
+        lecturer: classInfo.lecturer || "",
+        classId: classInfo.id_lophoc || "", // Lấy classId từ classInfo
       });
     }
+
+    this.fetchStudents();
   }
 
   fetchStudents = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Không tìm thấy token. Vui lòng đăng nhập lại.");
-      }
       const response = await axios.get("https://webdiemdanh-1.onrender.com/api/admin/sinhvien", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      const students = response.data.map((sv, index) => ({
+      const studentList = response.data.map((sv, index) => ({
         stt: index + 1,
         id_sinhvien: sv.id_sinhvien,
         mssv: sv.mssv,
         name: sv.name_sinhvien,
         lop: sv.lop_sinhvien,
-        checked: false,
+        checked: this.state.selectedStudents.some(
+          (selected) => selected.id_sinhvien === sv.id_sinhvien
+        ),
       }));
-      this.setState({ studentList: students });
+      this.setState({ studentList });
     } catch (error) {
       console.error("Error fetching students:", error);
-      this.setState({ error: "Không thể tải danh sách sinh viên" });
-      if (error.response && error.response.status === 401) {
-        localStorage.removeItem("token");
-        this.props.navigate("/AdminLogin");
-      }
+      alert("Không thể tải danh sách sinh viên");
     }
   };
 
@@ -104,56 +108,41 @@ class ThemSinhVienVaoLopHoc extends Component {
     this.setState({ studentList: newList });
   };
 
-  handleSearch = (event) => {
-    this.setState({ searchQuery: event.target.value });
-  };
-
   isSaveEnabled = () => {
     return this.state.studentList.some((sv) => sv.checked);
   };
 
-  handleSave = async () => {
-    try {
-      const { studentList, classInfo } = this.state;
-      const selectedStudents = studentList
-        .filter((sv) => sv.checked)
-        .map((sv) => sv.id_sinhvien);
-
-        console.log("Selected students:", selectedStudents); // Thêm log để kiểm tra
-      const studentCount = selectedStudents.length;
-
-      alert("Đã chọn sinh viên thành công");
-      this.props.navigate("/ThemThongTinLopHoc", {
-        state: {
-          studentCount: studentCount,
-          classInfo: classInfo,
-          selectedStudents: selectedStudents, // Pass the selected student IDs
-        },
-      });
-    } catch (error) {
-      console.error("Error saving students:", error);
-      this.setState({ error: "Không thể lưu danh sách sinh viên" });
-    }
+  handleBack = () => {
+    this.props.navigate("/ChinhSuaThongTinLopHoc");
   };
 
-  handleBack = () => {
-    this.props.navigate("/ThemThongTinLopHoc", {
+  handleSave = () => {
+    const { classId, className, semester, subjectName, lecturer } = this.state;
+    const selectedStudents = this.state.studentList
+      .filter((sv) => sv.checked)
+      .map((sv) => ({
+        id_sinhvien: sv.id_sinhvien,
+        mssv: sv.mssv,
+        name_sinhvien: sv.name,
+        lop_sinhvien: sv.lop,
+      }));
+
+    this.props.navigate("/ChinhSuaThongTinLopHoc", {
       state: {
-        studentCount: this.state.studentCount,
-        classInfo: this.state.classInfo,
+        classInfo: {
+          id_lophoc: classId, // Truyền id_lophoc
+          name_lophoc: className,
+          hocky: semester,
+          subjectName,
+          lecturer,
+        },
+        selectedStudents,
+        studentCount: selectedStudents.length,
       },
     });
   };
 
   render() {
-    const { searchQuery, studentList, error } = this.state;
-
-    const filteredStudents = studentList.filter(
-      (sv) =>
-        sv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        sv.mssv.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
     const menuItems = [
       { text: "Quản lý User", icon: <PersonIcon fontSize="large" /> },
       { text: "Quản lý lớp học", icon: <AssignmentIcon fontSize="large" /> },
@@ -166,6 +155,7 @@ class ThemSinhVienVaoLopHoc extends Component {
 
     return (
       <Box display="flex" height="100vh">
+        {/* Sidebar */}
         <Box width={240} bgcolor="primary.main" p={2}>
           <Box component="img" src={logo} width="100%" mb={4} />
           {menuItems.map((item, index) => (
@@ -186,24 +176,20 @@ class ThemSinhVienVaoLopHoc extends Component {
           ))}
         </Box>
 
+        {/* Main content */}
         <Container sx={{ flex: 1, p: 4 }}>
           <Typography variant="h5" fontWeight="bold" mb={3}>
-            Thêm sinh viên vào lớp học
+            Chỉnh sửa sinh viên vào lớp học
           </Typography>
 
-          {error && (
-            <Typography color="error" mb={2}>
-              {error}
-            </Typography>
-          )}
-
+          {/* Tìm kiếm và nút hành động */}
           <Box display="flex" alignItems="center" mb={2}>
             <TextField
               label="Tìm kiếm sinh viên"
               size="small"
               sx={{ width: 300 }}
-              value={searchQuery}
-              onChange={this.handleSearch}
+              value={this.state.searchQuery}
+              onChange={(e) => this.setState({ searchQuery: e.target.value })}
             />
             <IconButton>
               <SearchIcon />
@@ -228,6 +214,7 @@ class ThemSinhVienVaoLopHoc extends Component {
             </Box>
           </Box>
 
+          {/* Danh sách sinh viên */}
           <Box sx={{ border: "1px solid #ccc", p: 2 }}>
             <Typography variant="h6" fontWeight="bold" mb={1}>
               Danh sách sinh viên
@@ -243,7 +230,7 @@ class ThemSinhVienVaoLopHoc extends Component {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredStudents.map((sv, index) => (
+                {this.state.studentList.map((sv, index) => (
                   <TableRow key={sv.stt}>
                     <TableCell>{sv.stt}</TableCell>
                     <TableCell>
@@ -266,4 +253,4 @@ class ThemSinhVienVaoLopHoc extends Component {
   }
 }
 
-export default withNavigation(ThemSinhVienVaoLopHoc);
+export default withNavigation(ChinhSuaSinhVienVaoLopHoc);

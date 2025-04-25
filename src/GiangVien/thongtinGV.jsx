@@ -47,7 +47,7 @@ class ThongTinCaNhanGiangvien extends Component {
     const token = localStorage.getItem("token");
     if (token) {
       axios
-        .get("https://webdiemdanh-1.onrender.com/api/giangvien/ttgv", {
+        .get("http://localhost:8000/api/giangvien/ttgv", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -67,16 +67,32 @@ class ThongTinCaNhanGiangvien extends Component {
           });
         })
         .catch(() => {
-          alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
           this.props.navigate("/");
         });
     } else {
-      alert("Vui lòng đăng nhập trước.");
       this.props.navigate("/");
     }
   }
-
-
+  handleLogout = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        await axios.post("http://localhost:8000/api/giangvien/dangxuat",
+          {},
+          {
+            headers: {
+              "Accept": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Lỗi khi đăng xuất:", error);
+      }
+    }
+    localStorage.removeItem("token");
+    this.props.navigate("/");
+  };
   handleChange = (event) => {
     this.setState({ [event.target.id || event.target.name]: event.target.value });
   };
@@ -132,22 +148,22 @@ class ThongTinCaNhanGiangvien extends Component {
   };
 
 
-  handleMenuClick = (text) => {
-    const routes = {
-      "Thông Tin Giảng Viên": "/thongtinGV",
-      Homepage: "/homepage",
-      "Lịch giảng dạy": "/lichgiangday",
-      "Điểm Danh": "/diemdanh",
-      "Xem Kết Quả Điểm Danh": "/KQdiemdanh",
-      "Tra cứu Sinh Viên": "/tracuu",
-      "Đăng Xuất": "/",
-    };
-    if (routes[text]) {
-      this.props.navigate(routes[text]);
+  handleMenuClick = async (text) => {
+    if (text === "Thông Tin Giảng Viên") {
+      this.props.navigate("/thongtinGV");
     }
-  };
-
-
+    else if (text === "Homepage") {
+      this.props.navigate("/homepage");
+    }
+    else if (text === "Lịch giảng dạy") {
+      this.props.navigate("/lichgiangday");
+    }
+    else if (text === "Điểm Danh") {
+      this.props.navigate("/diemdanh");
+    } else if (text === "Đăng Xuất") {
+      this.handleLogout();
+    }
+  }
   render() {
     const { isEditing } = this.state;
 
@@ -167,8 +183,6 @@ class ThongTinCaNhanGiangvien extends Component {
       { text: "Thông Tin Giảng Viên", icon: <PersonIcon fontSize="large" /> },
       { text: "Lịch giảng dạy", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Điểm Danh", icon: <QrCodeIcon fontSize="large" /> },
-      { text: "Xem Kết Quả Điểm Danh", icon: <AssignmentIcon fontSize="large" /> },
-      { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon fontSize="large" /> },
       { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 

@@ -24,33 +24,64 @@ import PersonIcon from "@mui/icons-material/Person";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import axios from "axios";
 
-class DanhSachMonHoc extends Component {
+class QuanLyLichHoc extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      semester: "Học kỳ 1 2024 - 2025",
+      semester: "Học kỳ 1 2024-2025",
       selectedClassId: null,
-      classes: [
-        {
-          id: "L01",
-          name: "Lập trình Web",
-          teacher: "Nguyễn Văn A",
-          studentCount: 35,
-          startDate: "01/03/2024",
-          endDate: "30/06/2024",
-        },
-      ],
+      classes: [],
+      error: "",
     };
   }
 
+  componentDidMount() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      this.props.navigate("/AdminLogin");
+      return;
+    }
+
+    this.fetchClasses();
+  }
+
+  fetchClasses = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("https://webdiemdanh-1.onrender.com/api/admin/lophoc", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const classes = response.data.map((lopHoc) => ({
+        id: lopHoc.id_lophoc,
+        name: lopHoc.name_lophoc,
+        subject: lopHoc.monhoc, // Tên môn học
+        teacher: lopHoc.giangvien,
+        studentCount: lopHoc.student_count,
+        hocky: lopHoc.hocky, // Học kỳ
+      }));
+
+      this.setState({ classes });
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+      this.setState({ error: "Không thể tải danh sách lớp học" });
+    }
+  };
+
   handleMenuClick = (text) => {
     if (text === "Quản lý User") {
-      this.props.navigate("/QuanLyGiangVien");
+      this.props.navigate("/quanlysinhvien");
     } else if (text === "Quản lý lớp học") {
-      this.props.navigate("/QuanLyLopHoc");
-    } else if (text === "Danh sách môn học") {
-      this.props.navigate("/DanhSachMonHoc");
+      this.props.navigate("/quanlylophoc");
+    } else if (text === "Quản lý lịch học") {
+      this.props.navigate("/QuanLyLichHoc");
+    } else if (text === "Quản lý Môn Học") {
+      this.props.navigate("/quanlymonhoc");
     }
   };
 
@@ -65,9 +96,15 @@ class DanhSachMonHoc extends Component {
   };
 
   handleManageSchedule = () => {
-    const { selectedClassId } = this.state;
+    const { selectedClassId, classes } = this.state;
     if (selectedClassId) {
-      this.props.navigate(`/LichHocCuaMonHoc`);
+      const selectedClass = classes.find((cls) => cls.id === selectedClassId);
+      this.props.navigate(`/LichHocCuaLopHoc`, {
+        state: {
+          classId: selectedClassId,
+          classInfo: selectedClass,
+        },
+      });
     }
   };
 
@@ -76,15 +113,16 @@ class DanhSachMonHoc extends Component {
       { text: "Quản lý User", icon: <PersonIcon fontSize="large" /> },
       { text: "Quản lý lớp học", icon: <AssignmentIcon fontSize="large" /> },
       {
-        text: "Danh sách môn học",
+        text: "Quản lý lịch học",
         icon: <QrCodeScannerIcon fontSize="large" />,
       },
+      { text: "Quản lý Môn Học", icon: <MenuBookIcon fontSize="large" /> },
     ];
 
     const semesters = [
-      "Học kỳ 1 2024 - 2025",
-      "Học kỳ 2 2024 - 2025",
-      "Học kỳ hè 2024",
+      "Học kỳ 1 2024-2025",
+      "Học kỳ 2 2024-2025",
+      "Học kỳ 1 2025-2026",
     ];
 
     return (
@@ -109,8 +147,14 @@ class DanhSachMonHoc extends Component {
         {/* Main Content */}
         <Container sx={{ flex: 1, py: 4 }}>
           <Typography variant="h5" fontWeight="bold" mb={2}>
-            Danh sách môn học
+            Quản lý lịch học
           </Typography>
+
+          {this.state.error && (
+            <Typography color="error" mb={2}>
+              {this.state.error}
+            </Typography>
+          )}
 
           {/* Combobox chọn học kỳ */}
           <Box mb={3} maxWidth={300}>
@@ -149,10 +193,7 @@ class DanhSachMonHoc extends Component {
                     <b>Số lượng sinh viên</b>
                   </TableCell>
                   <TableCell>
-                    <b>Ngày bắt đầu</b>
-                  </TableCell>
-                  <TableCell>
-                    <b>Ngày kết thúc</b>
+                    <b>Học kỳ</b>
                   </TableCell>
                 </TableRow>
               </TableHead>
@@ -165,12 +206,11 @@ class DanhSachMonHoc extends Component {
                         onChange={() => this.handleCheckboxChange(item.id)}
                       />
                     </TableCell>
-                    <TableCell>{item.id}</TableCell>
                     <TableCell>{item.name}</TableCell>
+                    <TableCell>{item.subject}</TableCell>
                     <TableCell>{item.teacher}</TableCell>
                     <TableCell>{item.studentCount}</TableCell>
-                    <TableCell>{item.startDate}</TableCell>
-                    <TableCell>{item.endDate}</TableCell>
+                    <TableCell>{item.hocky}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -185,7 +225,7 @@ class DanhSachMonHoc extends Component {
               disabled={!this.state.selectedClassId}
               onClick={this.handleManageSchedule}
             >
-              Quản lý lịch học
+              Xem lịch học
             </Button>
           </Box>
         </Container>
@@ -194,4 +234,4 @@ class DanhSachMonHoc extends Component {
   }
 }
 
-export default withNavigation(DanhSachMonHoc);
+export default withNavigation(QuanLyLichHoc);

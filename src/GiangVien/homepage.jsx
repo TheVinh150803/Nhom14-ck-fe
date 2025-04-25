@@ -32,6 +32,7 @@ import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
 import HomeIcon from "@mui/icons-material/Home";
 import LogoutIcon from "@mui/icons-material/Logout";
+import axios from "axios";
 class DiemDanhGV extends Component {
   constructor(props) {
     super(props);
@@ -51,26 +52,33 @@ class DiemDanhGV extends Component {
   }
 
 
-  handleMenuClick = (text) => {
+  componentDidMount() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      this.props.navigate("/"); // Redirect to login if no token
+    }
+  }
+
+
+  handleMenuClick = async (text) => {
     if (text === "Thông Tin Giảng Viên") {
       this.props.navigate("/thongtinGV");
     }
     else if (text === "Homepage") {
-        this.props.navigate("/homepage");
-      }
+      this.props.navigate("/homepage");
+    }
     else if (text === "Lịch giảng dạy") {
       this.props.navigate("/lichgiangday");
     }
-     else if (text === "Điểm Danh") {
+    else if (text === "Điểm Danh") {
       this.props.navigate("/diemdanh");
-    } else if (text === "Xem Kết Quả Điểm Danh") {
-      this.props.navigate("/KQDiemDanh");
-    } else if (text === "Tra cứu Sinh Viên") {
-      this.props.navigate("/tracuu");
-    }
-    else if (text === "Đăng Xuất") {
-      this.props.navigate("/");
-    }
+    } else if (text === "Đăng Xuất") {
+      this.handleLogout();
+    };
+  };
+  handleLogout = () => {
+    localStorage.removeItem("token");
+    this.props.navigate("/"); // Redirect to login after logout
   };
 
 
@@ -97,18 +105,16 @@ class DiemDanhGV extends Component {
 
 
     const menuItems = [
-        { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
+      { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
       { text: "Thông Tin Giảng Viên", icon: <PersonIcon fontSize="large" /> },
       { text: "Lịch giảng dạy", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Điểm Danh", icon: <QrCodeIcon fontSize="large" /> },
-      { text: "Xem Kết Quả Điểm Danh", icon: <AssignmentIcon fontSize="large" /> },
-      { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon fontSize="large" /> },
-       { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
+      { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
 
     return (
-        <Box display="flex" height="110vh" bgcolor="#f4f6f8">
+      <Box display="flex" height="110vh" bgcolor="#f4f6f8">
         {/* Sidebar */}
         <Box width={240} bgcolor="#2c3e50" p={2}>
           <Box component="img" src={logo} width="100%" mb={4} borderRadius={2} />
@@ -130,7 +136,8 @@ class DiemDanhGV extends Component {
             ))}
           </List>
         </Box>
-     
+
+
         {/* Main Content */}
         <Box
           flex={1}
@@ -157,3 +164,8 @@ class DiemDanhGV extends Component {
 
 
 export default withNavigation(DiemDanhGV);
+
+
+
+
+

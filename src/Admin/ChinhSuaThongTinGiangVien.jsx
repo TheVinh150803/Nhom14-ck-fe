@@ -1,55 +1,37 @@
 import React, { Component } from "react";
-import {
-  Box,
-  Button,
-  Container,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-  InputLabel,
-  FormControl,
-} from "@mui/material";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import PersonIcon from "@mui/icons-material/Person";
-import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
-import logo from "../img/logo.jpg";
+import { Box, Button, Container, TextField, Typography } from "@mui/material";
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import axios from "axios";
 import withNavigation from "./withNavigation";
 
 class ChinhSuaThongTinGiangVien extends Component {
   constructor(props) {
     super(props);
+
+    console.log("ChinhSuaThongTinGiangVien props:", props); // Debug props
+    console.log("Location state:", props.location?.state); // Debug location.state
+
+    const teacherData = props.location?.state?.teacher || {
+      id_giangvien: "",
+      Magiangvien: "",
+      name: "",
+      phone: "",
+      email: "",
+      address: "",
+      gender: "",
+    };
+
+    console.log("Received teacher data:", teacherData);
+
+    if (!props.location?.state?.teacher) {
+      alert("Không có dữ liệu giảng viên để chỉnh sửa. Vui lòng chọn lại.");
+      this.props.navigate("/QuanLyGiangVien");
+    }
+
     this.state = {
-      selectedTeacher: "",
-      teacherInfo: {
-        id: "",
-        name: "",
-        phone: "",
-        email: "",
-        username: "",
-        password: "",
-      },
-      teachers: [
-        {
-          id: "GV01",
-          name: "Giảng viên 1",
-          phone: "0933271900",
-          email: "gv1@gmail.com",
-          username: "gv1",
-          password: "123456",
-        },
-      ],
+      teacherInfo: teacherData,
     };
   }
-
-  handleSelectChange = (event) => {
-    const selectedName = event.target.value;
-    const teacher = this.state.teachers.find((t) => t.name === selectedName);
-    this.setState({
-      selectedTeacher: selectedName,
-      teacherInfo: teacher || {},
-    });
-  };
 
   handleInputChange = (field) => (event) => {
     this.setState({
@@ -60,57 +42,48 @@ class ChinhSuaThongTinGiangVien extends Component {
     });
   };
 
-  handleMenuClick = (text) => {
-    if (text === "Quản lý lớp học") {
-      this.props.navigate("/QuanLyLopHoc");
-    } else if (text === "Danh sách môn học") {
-      this.props.navigate("/DanhSachMonHoc");
-    } else if (text === "Quản lý User") {
-      this.props.navigate("/QuanLyGiangVien");
-    }
-  };
-
   handleUpdate = () => {
-    // TODO: Gửi thông tin lên backend nếu cần
-    this.props.navigate("/QuanLyGiangVien");
+    const { teacherInfo } = this.state;
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      console.error("No token found, please login first");
+      this.props.navigate("/AdminLogin");
+      return;
+    }
+
+    axios
+      .put(
+        `https://webdiemdanh-1.onrender.com/api/admin/capnhatgiangvien/${teacherInfo.id_giangvien}`,
+        {
+          Magiangvien: teacherInfo.Magiangvien,
+          name_giangvien: teacherInfo.name,
+          sdt_giangvien: teacherInfo.phone,
+          email_giangvien: teacherInfo.email,
+          diachi_giangvien: teacherInfo.address,
+          gioitinh_giangvien: teacherInfo.gender,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then(() => {
+        alert("Cập nhật thông tin giảng viên thành công!");
+        this.props.navigate("/QuanLyGiangVien");
+      })
+      .catch((error) => {
+        console.error("Error updating teacher:", error);
+        alert("Cập nhật thông tin giảng viên thất bại. Vui lòng thử lại!");
+      });
   };
 
   render() {
-    const { teacherInfo, selectedTeacher, teachers } = this.state;
-
-    const menuItems = [
-      { text: "Quản lý User", icon: <PersonIcon fontSize="large" /> },
-      { text: "Quản lý lớp học", icon: <AssignmentIcon fontSize="large" /> },
-      {
-        text: "Danh sách môn học",
-        icon: <QrCodeScannerIcon fontSize="large" />,
-      },
-    ];
+    const { teacherInfo } = this.state;
 
     return (
       <Box display="flex" height="100vh">
-        {/* Sidebar */}
-        <Box width={240} bgcolor="primary.main" p={2}>
-          <Box component="img" src={logo} width="100%" mb={4} />
-          {menuItems.map((item, index) => (
-            <Box
-              key={index}
-              display="flex"
-              alignItems="center"
-              color="white"
-              mb={2}
-              sx={{ cursor: "pointer" }}
-              onClick={() => this.handleMenuClick(item.text)}
-            >
-              {item.icon}
-              <Typography variant="subtitle1" ml={2}>
-                {item.text}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-
-        {/* Main content */}
         <Container sx={{ flex: 1, p: 4 }}>
           <Typography variant="h6" mb={2}>
             Chỉnh sửa thông tin giảng viên
@@ -118,50 +91,53 @@ class ChinhSuaThongTinGiangVien extends Component {
 
           <Box display="flex" flexDirection="column" gap={2} maxWidth={500}>
             <TextField
+              label="ID Giảng viên"
+              value={teacherInfo.id_giangvien || ""}
+              onChange={this.handleInputChange("id_giangvien")}
+              fullWidth
+              disabled
+            />
+            <TextField
               label="Mã giảng viên"
-              value={teacherInfo.id}
-              onChange={this.handleInputChange("id")}
+              value={teacherInfo.Magiangvien || ""}
+              onChange={this.handleInputChange("Magiangvien")}
+              fullWidth
+              disabled
+            />
+            <TextField
+              label="Tên giảng viên"
+              value={teacherInfo.name || ""}
+              onChange={this.handleInputChange("name")}
               fullWidth
             />
-            <FormControl fullWidth>
-              <InputLabel>Tên giảng viên</InputLabel>
-              <Select
-                value={selectedTeacher}
-                label="Tên giảng viên"
-                onChange={this.handleSelectChange}
-              >
-                {teachers.map((teacher, index) => (
-                  <MenuItem key={index} value={teacher.name}>
-                    {teacher.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
             <TextField
               label="Số điện thoại"
-              value={teacherInfo.phone}
+              value={teacherInfo.phone || ""}
               onChange={this.handleInputChange("phone")}
               fullWidth
             />
             <TextField
               label="E-mail"
-              value={teacherInfo.email}
+              value={teacherInfo.email || ""}
               onChange={this.handleInputChange("email")}
               fullWidth
             />
             <TextField
-              label="Tài khoản"
-              value={teacherInfo.username}
-              onChange={this.handleInputChange("username")}
+              label="Địa chỉ"
+              value={teacherInfo.address || ""}
+              onChange={this.handleInputChange("address")}
               fullWidth
             />
-            <TextField
-              label="Mật khẩu"
-              type="password"
-              value={teacherInfo.password}
-              onChange={this.handleInputChange("password")}
-              fullWidth
-            />
+            <FormControl fullWidth>
+              <InputLabel>Giới tính</InputLabel>
+              <Select
+                value={teacherInfo.gender || ""}
+                onChange={this.handleInputChange("gender")}
+              >
+                <MenuItem value="Nam">Nam</MenuItem>
+                <MenuItem value="Nữ">Nữ</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
 
           <Box mt={3} display="flex" gap={2}>
@@ -170,7 +146,14 @@ class ChinhSuaThongTinGiangVien extends Component {
               color="primary"
               onClick={this.handleUpdate}
             >
-              Thay đổi
+              Lưu thông tin
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => this.props.navigate("/QuanLyGiangVien")}
+            >
+              Quay lại
             </Button>
           </Box>
         </Container>

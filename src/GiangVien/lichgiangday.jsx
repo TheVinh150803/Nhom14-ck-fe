@@ -8,6 +8,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
 import LogoutIcon from "@mui/icons-material/Logout";
+import axios from "axios";
 import {
   Box,
   Container,
@@ -30,29 +31,38 @@ class LichGiangDayGV extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      schedule: [
-        {
-          id: "CS030319",
-          subject: "Thực Hành Lập Trình Web",
-          tiet: "10 - 12",
-          phong: "PM05",
-          ngay: "Thứ 2",
-          thoigian: "07/10/2024 - 15/12/2024",
-        },
-        {
-          id: "CS040420",
-          subject: "Cơ sở dữ liệu",
-          tiet: "7 - 9",
-          phong: "PM03",
-          ngay: "Thứ 4",
-          thoigian: "09/10/2024 - 20/12/2024",
-        },
-      ],
+      schedule: [],
     };
   }
 
 
-  handleMenuClick = (text) => {
+  componentDidMount() {
+    this.fetchSchedule();
+  }
+  handleLogout = () => {
+    localStorage.removeItem("token");
+    this.props.navigate("/");
+  };
+  fetchSchedule = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      axios
+        .get("http://localhost:8000/api/giangvien/lichgiangday", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          this.setState({ schedule: response.data.data });
+        })
+        .catch((error) => {
+          console.error("Error fetching schedule:", error);
+        });
+    }
+  };
+
+
+  handleMenuClick = async (text) => {
     if (text === "Thông Tin Giảng Viên") {
       this.props.navigate("/thongtinGV");
     } else if (text === "Homepage") {
@@ -61,13 +71,8 @@ class LichGiangDayGV extends Component {
       this.props.navigate("/lichgiangday");
     } else if (text === "Điểm Danh") {
       this.props.navigate("/diemdanh");
-    } else if (text === "Xem Kết Quả Điểm Danh") {
-      this.props.navigate("/KQdiemdanh");
-    } else if (text === "Tra cứu Sinh Viên") {
-      this.props.navigate("/tracuu");
-    }
-    else if (text === "Đăng Xuất") {
-      this.props.navigate("/");
+    } else if (text === "Đăng Xuất") {
+      this.handleLogout();
     }
   };
 
@@ -78,9 +83,7 @@ class LichGiangDayGV extends Component {
       { text: "Thông Tin Giảng Viên", icon: <PersonIcon fontSize="large" /> },
       { text: "Lịch giảng dạy", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Điểm Danh", icon: <QrCodeIcon fontSize="large" /> },
-      { text: "Xem Kết Quả Điểm Danh", icon: <AssignmentIcon fontSize="large" /> },
-      { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon fontSize="large" /> },
-       { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
+      { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
 
@@ -123,21 +126,17 @@ class LichGiangDayGV extends Component {
                 <TableRow>
                   <TableCell><strong>Mã Môn</strong></TableCell>
                   <TableCell><strong>Tên Môn</strong></TableCell>
-                  <TableCell><strong>Tiết</strong></TableCell>
-                  <TableCell><strong>Phòng</strong></TableCell>
-                  <TableCell><strong>Ngày</strong></TableCell>
-                  <TableCell><strong>Thời gian</strong></TableCell>
+                  <TableCell><strong>Tiết Bắt Đầu</strong></TableCell>
+                  <TableCell><strong>Tiết Kết Thúc</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {this.state.schedule.map((row, index) => (
                   <TableRow key={index}>
-                    <TableCell>{row.id}</TableCell>
-                    <TableCell>{row.subject}</TableCell>
-                    <TableCell>{row.tiet}</TableCell>
-                    <TableCell>{row.phong}</TableCell>
-                    <TableCell>{row.ngay}</TableCell>
-                    <TableCell>{row.thoigian}</TableCell>
+                    <TableCell>{row.maMon}</TableCell>
+                    <TableCell>{row.tenMon}</TableCell>
+                    <TableCell>{row.tietBD}</TableCell>
+                    <TableCell>{row.tietKT}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -151,3 +150,8 @@ class LichGiangDayGV extends Component {
 
 
 export default withNavigation(LichGiangDayGV);
+
+
+
+
+

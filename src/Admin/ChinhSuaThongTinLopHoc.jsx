@@ -15,43 +15,263 @@ import PersonIcon from "@mui/icons-material/Person";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import axios from "axios";
 
 class ChinhSuaThongTinLopHoc extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      classId: "",
       classCode: "",
       subjectName: "",
       lecturer: "",
-      studentCount: "",
-      startDate: "",
-      endDate: "",
+      studentCount: 0,
       semester: "",
+      monHocs: [],
+      giangViens: [],
+      selectedStudents: [],
+      error: "",
     };
   }
 
-  handleMenuClick = (text) => {
-    if (text === "Quản lý User") {
-      this.props.navigate("/QuanLyGiangVien");
-    } else if (text === "Quản lý lớp học") {
-      this.props.navigate("/QuanLyLopHoc");
-    } else if (text === "Danh sách môn học") {
-      this.props.navigate("/DanhSachMonHoc");
+  componentDidMount() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      this.props.navigate("/AdminLogin");
+      return;
+    }
+
+    this.initializeState();
+    this.fetchMonHocs();
+    this.fetchGiangViens();
+  }
+
+  componentDidUpdate(prevProps) {
+    // Kiểm tra nếu location.state thay đổi (khi quay lại từ ChinhSuaSinhVienVaoLopHoc)
+    if (this.props.location.state !== prevProps.location.state) {
+      this.initializeState();
+    }
+  }
+
+  initializeState = () => {
+    const { location } = this.props;
+
+    // Kiểm tra nếu quay lại từ ChinhSuaSinhVienVaoLopHoc
+    if (location.state && location.state.classInfo && location.state.selectedStudents) {
+      const { classInfo, selectedStudents, studentCount } = location.state;
+      this.setState({
+        classId: classInfo.id_lophoc || this.state.classId,
+        classCode: classInfo.name_lophoc || this.state.classCode,
+        semester: classInfo.hocky || this.state.semester,
+        subjectName: classInfo.subjectName || this.state.subjectName,
+        lecturer: classInfo.lecturer || this.state.lecturer,
+        selectedStudents: selectedStudents || this.state.selectedStudents,
+        studentCount: studentCount || this.state.studentCount,
+      });
+      return;
+    }
+
+    // Khởi tạo từ dữ liệu ban đầu (từ QuanLyLopHoc)
+    if (location.state && location.state.lopHoc) {
+      const { lopHoc } = location.state;
+      this.setState(
+        {
+          classId: lopHoc.id_lophoc,
+          classCode: lopHoc.name_lophoc,
+          semester: lopHoc.hocky,
+          studentCount: lopHoc.student_count,
+        },
+        () => {
+          this.fetchStudentsByClass(); // Tải danh sách sinh viên sau khi có classId
+        }
+      );
     }
   };
 
-  handleSave = () => {
-    // TODO: Lưu thông tin lớp học (nếu cần)
-    this.props.navigate("/QuanLyLopHoc");
+  fetchStudentsByClass = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { classId } = this.state;
+      const response = await axios.get(
+        `https://webdiemdanh-1.onrender.com/api/admin/lophoc/${classId}/sinhvien`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      this.setState({
+        selectedStudents: response.data,
+        studentCount: response.data.length, // Cập nhật số lượng sinh viên
+      });
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      if (error.response && error.response.status === 404) {
+        this.setState({ selectedStudents: [], studentCount: 0 }); // Nếu không có sinh viên, để mảng rỗng
+      } else {
+        this.setState({ error: "Không thể tải danh sách sinh viên" });
+      }
+    }
   };
 
-  handleDelete = () => {
-    // TODO: Xoá lớp học (nếu cần)
-    this.props.navigate("/QuanLyLopHoc");
+  fetchMonHocs = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("https://webdiemdanh-1.onrender.com/api/admin/monhoc", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const monHocs = response.data;
+      this.setState((prevState) => {
+        const { location } = this.props;
+        const subjectNameFromState = location.state?.lopHoc?.monhoc || "";
+        const matchedMonHoc = monHocs.find(monHoc => monHoc.name_monhoc === subjectNameFromState);
+        return {
+          monHocs,
+          subjectName: matchedMonHoc ? matchedMonHoc.id_monhoc : prevState.subjectName,
+        };
+      });
+    } catch (error) {
+      console.error("Error fetching subjects:", error);
+      this.setState({ error: "Không thể tải danh sách môn học" });
+    }
+  };
+
+  fetchGiangViens = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("https://webdiemdanh-1.onrender.com/api/admin/giangvien", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const giangViens = response.data;
+      this.setState((prevState) => {
+        const { location } = this.props;
+        const lecturerNameFromState = location.state?.lopHoc?.giangvien || "";
+        const matchedGiangVien = giangViens.find(gv => gv.name_giangvien === lecturerNameFromState);
+        return {
+          giangViens,
+          lecturer: matchedGiangVien ? matchedGiangVien.id_giangvien : prevState.lecturer,
+        };
+      });
+    } catch (error) {
+      console.error("Error fetching lecturers:", error);
+      this.setState({ error: "Không thể tải danh sách giảng viên" });
+    }
+  };
+
+  handleMenuClick = (text) => {
+    if (text === "Quản lý User") {
+      this.props.navigate("/quanlysinhvien");
+    } else if (text === "Quản lý lớp học") {
+      this.props.navigate("/quanlylophoc");
+    } else if (text === "Quản lý lịch học") {
+      this.props.navigate("/QuanLyLichHoc");
+    } else if (text === "Quản lý Môn Học") {
+      this.props.navigate("/quanlymonhoc");
+    }
+  };
+
+  handleSave = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { classId, classCode, subjectName, lecturer, semester, selectedStudents } = this.state;
+
+      // Kiểm tra classId
+      if (!classId) {
+        throw new Error("Không tìm thấy ID lớp học để cập nhật");
+      }
+
+      // Validate inputs
+      if (!classCode || typeof classCode !== "string" || classCode.length > 50) {
+        throw new Error("Tên lớp học không hợp lệ");
+      }
+      if (!subjectName || isNaN(subjectName)) {
+        throw new Error("Môn học không hợp lệ");
+      }
+      if (!lecturer || isNaN(lecturer)) {
+        throw new Error("Giảng viên không hợp lệ");
+      }
+      if (!semester || typeof semester !== "string" || semester.length > 20) {
+        throw new Error("Học kỳ không hợp lệ");
+      }
+
+      // Cập nhật thông tin lớp học
+      await axios.put(
+        `https://webdiemdanh-1.onrender.com/api/admin/capnhatlophoc/${classId}`,
+        {
+          name_lophoc: classCode,
+          id_monhoc: subjectName,
+          id_giangvien: lecturer,
+          hocky: semester,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Cập nhật danh sách sinh viên
+      await axios.post(
+        "https://webdiemdanh-1.onrender.com/api/admin/themsinhvienvaolophoc",
+        {
+          id_lophoc: classId,
+          sinhviens: selectedStudents.map(student => student.id_sinhvien),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Cập nhật lớp học và sinh viên thành công");
+      this.props.navigate("/QuanLyLopHoc", { state: { refresh: true } });
+    } catch (error) {
+      console.error("Error updating class:", error);
+      this.setState({ error: error.message || "Không thể cập nhật lớp học" });
+    }
+  };
+
+  handleDelete = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { classId } = this.state;
+      await axios.delete(`https://webdiemdanh-1.onrender.com/api/admin/xoalophoc/${classId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      alert("Xóa lớp học thành công");
+      this.props.navigate("/QuanLyLopHoc", { state: { refresh: true } });
+    } catch (error) {
+      console.error("Error deleting class:", error);
+      this.setState({ error: "Không thể xóa lớp học" });
+    }
   };
 
   handleAddStudent = () => {
-    this.props.navigate("/ThemSinhVienVaoLopHoc");
+    const { classId, classCode, semester, selectedStudents, subjectName, lecturer } = this.state;
+    this.props.navigate("/ChinhSuaSinhVienVaoLopHoc", {
+      state: {
+        classInfo: {
+          id_lophoc: classId,
+          name_lophoc: classCode,
+          hocky: semester,
+          subjectName,
+          lecturer,
+        },
+        selectedStudents,
+      },
+    });
+  };
+
+  handleBack = () => {
+    this.props.navigate("/QuanLyLopHoc");
   };
 
   render() {
@@ -59,13 +279,13 @@ class ChinhSuaThongTinLopHoc extends Component {
       { text: "Quản lý User", icon: <PersonIcon fontSize="large" /> },
       { text: "Quản lý lớp học", icon: <AssignmentIcon fontSize="large" /> },
       {
-        text: "Danh sách môn học",
+        text: "Quản lý lịch học",
         icon: <QrCodeScannerIcon fontSize="large" />,
       },
+      { text: "Quản lý Môn Học", icon: <MenuBookIcon fontSize="large" /> },
     ];
 
-    const lecturers = ["Giảng viên 1", "Giảng viên 2", "Giảng viên 3"];
-    const subjects = ["Toán rời rạc", "Lập trình Java", "Cấu trúc dữ liệu"];
+    const { monHocs, giangViens } = this.state;
 
     return (
       <Box display="flex" height="100vh">
@@ -96,6 +316,12 @@ class ChinhSuaThongTinLopHoc extends Component {
             Chỉnh sửa thông tin lớp học
           </Typography>
 
+          {this.state.error && (
+            <Typography color="error" mb={2}>
+              {this.state.error}
+            </Typography>
+          )}
+
           <Box
             component="form"
             display="flex"
@@ -118,9 +344,9 @@ class ChinhSuaThongTinLopHoc extends Component {
                 label="Tên môn học"
                 onChange={(e) => this.setState({ subjectName: e.target.value })}
               >
-                {subjects.map((subject, index) => (
-                  <MenuItem key={index} value={subject}>
-                    {subject}
+                {monHocs.map((subject) => (
+                  <MenuItem key={subject.id_monhoc} value={subject.id_monhoc}>
+                    {subject.name_monhoc}
                   </MenuItem>
                 ))}
               </Select>
@@ -133,9 +359,9 @@ class ChinhSuaThongTinLopHoc extends Component {
                 label="Giảng viên phụ trách"
                 onChange={(e) => this.setState({ lecturer: e.target.value })}
               >
-                {lecturers.map((gv, index) => (
-                  <MenuItem key={index} value={gv}>
-                    {gv}
+                {giangViens.map((gv) => (
+                  <MenuItem key={gv.id_giangvien} value={gv.id_giangvien}>
+                    {gv.name_giangvien}
                   </MenuItem>
                 ))}
               </Select>
@@ -145,9 +371,7 @@ class ChinhSuaThongTinLopHoc extends Component {
               <TextField
                 label="Số lượng sinh viên"
                 value={this.state.studentCount}
-                onChange={(e) =>
-                  this.setState({ studentCount: e.target.value })
-                }
+                disabled
                 fullWidth
                 size="small"
               />
@@ -156,7 +380,7 @@ class ChinhSuaThongTinLopHoc extends Component {
                 sx={{ whiteSpace: "nowrap" }}
                 onClick={this.handleAddStudent}
               >
-                Thêm sinh viên
+                Chỉnh sửa sinh viên
               </Button>
             </Box>
 
@@ -179,27 +403,14 @@ class ChinhSuaThongTinLopHoc extends Component {
               </Select>
             </FormControl>
 
-            <TextField
-              label="Ngày bắt đầu"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={this.state.startDate}
-              onChange={(e) => this.setState({ startDate: e.target.value })}
-              fullWidth
-              size="small"
-            />
-
-            <TextField
-              label="Ngày kết thúc"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={this.state.endDate}
-              onChange={(e) => this.setState({ endDate: e.target.value })}
-              fullWidth
-              size="small"
-            />
-
             <Box display="flex" justifyContent="flex-end" mt={2} gap={2}>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={this.handleBack}
+              >
+                Quay lại
+              </Button>
               <Button
                 variant="contained"
                 color="error"

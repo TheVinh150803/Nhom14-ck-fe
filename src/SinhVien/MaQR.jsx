@@ -62,7 +62,7 @@ class MaQR extends Component {
       { text: "Thời khóa biểu", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
-      { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
+  
       { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 

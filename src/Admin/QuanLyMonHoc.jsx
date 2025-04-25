@@ -2,8 +2,10 @@ import React, { Component } from "react";
 import {
   Box,
   Button,
-  Checkbox,
   Container,
+  Checkbox,
+  TextField,
+  MenuItem,
   List,
   ListItem,
   ListItemIcon,
@@ -16,49 +18,66 @@ import {
   TableHead,
   TableRow,
   Typography,
-  TextField,
-  MenuItem,
 } from "@mui/material";
-import AssignmentIcon from "@mui/icons-material/Assignment";
 import PersonIcon from "@mui/icons-material/Person";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
 import axios from "axios";
 
-class QuanLyLopHoc extends Component {
+class QuanLyMonHoc extends Component {
   constructor(props) {
     super(props);
     this.state = {
       semester: "Học kỳ 1 2024 - 2025",
-      selectedClassId: null,
-      classes: [],
+      subjects: [],
+      selectedSubjectId: null,
     };
   }
 
   componentDidMount() {
-    this.fetchClasses();
-
-    const { location } = this.props;
-    if (location.state && location.state.refresh) {
-      this.fetchClasses();
-    }
+    this.fetchSubjects();
   }
 
-  fetchClasses = async () => {
+  fetchSubjects = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("https://webdiemdanh-1.onrender.com/api/admin/lophoc", {
+      const response = await axios.get("https://webdiemdanh-1.onrender.com/api/admin/monhoc", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      this.setState({ classes: response.data });
+      this.setState({ subjects: response.data });
     } catch (error) {
-      console.error("Error fetching classes:", error);
-      alert("Không thể tải danh sách lớp học");
+      console.error("Error fetching subjects:", error);
+      alert("Không thể tải danh sách môn học");
     }
+  };
+
+  handleCheckboxChange = (id) => {
+    this.setState({
+      selectedSubjectId: this.state.selectedSubjectId === id ? null : id,
+    });
+  };
+
+  handleEditSubject = () => {
+    const { selectedSubjectId, subjects } = this.state;
+    if (selectedSubjectId) {
+      const selectedSubject = subjects.find(
+        (subject) => subject.id_monhoc === selectedSubjectId
+      );
+      this.props.navigate(`/ChinhSuaMonHoc`, { state: { subject: selectedSubject } });
+    }
+  };
+
+  handleAddSubject = () => {
+    this.props.navigate("/ThemMonHoc");
+  };
+
+  handleSemesterChange = (event) => {
+    this.setState({ semester: event.target.value });
   };
 
   handleMenuClick = (text) => {
@@ -70,32 +89,6 @@ class QuanLyLopHoc extends Component {
       this.props.navigate("/QuanLyLichHoc");
     } else if (text === "Quản lý Môn Học") {
       this.props.navigate("/quanlymonhoc");
-    }
-  };
-
-  handleSemesterChange = (event) => {
-    this.setState({ semester: event.target.value });
-  };
-
-  handleCheckboxChange = (id) => {
-    this.setState({
-      selectedClassId: this.state.selectedClassId === id ? null : id,
-    });
-  };
-
-  handleAddClass = () => {
-    this.props.navigate("/ThemThongTinLopHoc");
-  };
-
-  handleEditClass = () => {
-    const { selectedClassId, classes } = this.state;
-    if (selectedClassId) {
-      const selectedClass = classes.find(
-        (lopHoc) => lopHoc.id_lophoc === selectedClassId
-      );
-      this.props.navigate("/ChinhSuaThongTinLopHoc", {
-        state: { lopHoc: selectedClass },
-      });
     }
   };
 
@@ -124,8 +117,8 @@ class QuanLyLopHoc extends Component {
           <List>
             {menuItems.map((item, index) => (
               <ListItem
+                button
                 key={index}
-                button // Chỉ để button, không cần button={true}
                 onClick={() => this.handleMenuClick(item.text)}
               >
                 <ListItemIcon sx={{ color: "white" }}>{item.icon}</ListItemIcon>
@@ -138,7 +131,7 @@ class QuanLyLopHoc extends Component {
         {/* Main Content */}
         <Container sx={{ flex: 1, py: 4 }}>
           <Typography variant="h5" fontWeight="bold" mb={2}>
-            Quản lý lớp học
+            Quản lý môn học
           </Typography>
 
           {/* Combobox chọn học kỳ */}
@@ -166,57 +159,45 @@ class QuanLyLopHoc extends Component {
                 <TableRow>
                   <TableCell />
                   <TableCell>
-                    <b>Tên lớp học</b>
+                    <b>Mã môn học</b>
                   </TableCell>
                   <TableCell>
                     <b>Tên môn học</b>
                   </TableCell>
-                  <TableCell>
-                    <b>Giảng viên phụ trách</b>
-                  </TableCell>
-                  <TableCell>
-                    <b>Số lượng sinh viên</b>
-                  </TableCell>
-                  <TableCell>
-                    <b>Học kỳ</b>
-                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {this.state.classes.map((item) => (
-                  <TableRow key={item.id_lophoc}>
+                {this.state.subjects.map((item) => (
+                  <TableRow key={item.id_monhoc}>
                     <TableCell padding="checkbox">
                       <Checkbox
-                        checked={this.state.selectedClassId === item.id_lophoc}
-                        onChange={() => this.handleCheckboxChange(item.id_lophoc)}
+                        checked={this.state.selectedSubjectId === item.id_monhoc}
+                        onChange={() => this.handleCheckboxChange(item.id_monhoc)}
                       />
                     </TableCell>
-                    <TableCell>{item.name_lophoc}</TableCell>
-                    <TableCell>{item.monhoc}</TableCell>
-                    <TableCell>{item.giangvien}</TableCell>
-                    <TableCell>{item.student_count}</TableCell>
-                    <TableCell>{item.hocky}</TableCell>
+                    <TableCell>{item.mamon}</TableCell>
+                    <TableCell>{item.name_monhoc}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
 
-          {/* Action buttons */}
+          {/* Action Buttons */}
           <Box mt={3} display="flex" gap={2}>
             <Button
               variant="contained"
               color="success"
-              onClick={this.handleAddClass}
-              disabled={this.state.selectedClassId !== null}
+              disabled={this.state.selectedSubjectId !== null}
+              onClick={this.handleAddSubject}
             >
-              Thêm lớp học
+              Thêm môn học
             </Button>
             <Button
               variant="contained"
               color="primary"
-              disabled={!this.state.selectedClassId}
-              onClick={this.handleEditClass}
+              disabled={this.state.selectedSubjectId === null}
+              onClick={this.handleEditSubject}
             >
               Chỉnh sửa
             </Button>
@@ -227,4 +208,4 @@ class QuanLyLopHoc extends Component {
   }
 }
 
-export default withNavigation(QuanLyLopHoc);
+export default withNavigation(QuanLyMonHoc);

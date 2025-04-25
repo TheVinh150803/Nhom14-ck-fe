@@ -35,26 +35,117 @@ import HomeIcon from "@mui/icons-material/Home";
 import LogoutIcon from "@mui/icons-material/Logout";
 import axios from "axios";
 
+
 class DiemDanhGV extends Component {
   constructor(props) {
     super(props);
+    const today = new Date().toISOString().slice(0, 10);
     this.state = {
       semester: "Học kỳ 2 năm học 2025 - 2026",
-      attendanceDate: "2025-03-19",
-      selectedClass: "",
-      students: [
-        { id: 1, mssv: "DH52112086", name: "Nguyễn Trần Thế Vinh", class: "DH21_TH12", status: "" },
-        { id: 2, mssv: "DH52152145", name: "Huỳnh Đại Thắng", class: "DH21_TH12", status: "" },
-        { id: 3, mssv: "DH52112086", name: "Nguyễn Nhật Phi", class: "DH21_TH12", status: "" },
-        { id: 4, mssv: "DH52111467", name: "Huỳnh Tấn Phát", class: "DH21_TH12", status: "" },
-        { id: 5, mssv: "DH52111469", name: "Lê Thành Phát", class: "DH21_TH12", status: "" },
-        { id: 6, mssv: "DH52111506", name: "Nguyễn Anh Phú", class: "DH21_TH12", status: "" },
-      ],
+      attendanceDate: today,
+      selectedBuoiHoc: "",
+      buoiHocList: [],
+      students: [],
       qrCodeData: null,
       isLoadingQRCode: false,
       openQRCodeDialog: false,
+      error: null,
     };
   }
+
+
+  componentDidMount() {
+    this.fetchBuoiHoc();
+  }
+
+
+  fetchBuoiHoc = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      this.setState({ error: "Bạn cần đăng nhập lại để tiếp tục" });
+      this.props.navigate("/");
+      return;
+    }
+
+
+    try {
+      const response = await axios.get(
+        "https://webdiemdanh-1.onrender.com/api/diemdanh/buoihoc",
+        {
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+
+      if (response.data.status === "success") {
+        this.setState({ buoiHocList: response.data.data, error: null });
+      } else {
+        this.setState({ error: response.data.message || "Không thể lấy danh sách buổi học" });
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách buổi học:", error.response || error.message);
+      this.setState({
+        error: error.response?.data?.message || "Không thể lấy danh sách buổi học. Vui lòng thử lại.",
+      });
+
+
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        this.props.navigate("/");
+      }
+    }
+  };
+
+
+  fetchSinhVien = async (id_lophoc) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      this.setState({ error: "Bạn cần đăng nhập lại để tiếp tục" });
+      this.props.navigate("/");
+      return;
+    }
+
+
+    try {
+      const response = await axios.get(
+        `https://webdiemdanh-1.onrender.com/api/diemdanh/sinhvien/${id_lophoc}`,
+        {
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+
+      if (response.data.status === "success") {
+        this.setState({
+          students: response.data.data.map((student) => ({
+            ...student,
+            status: "",
+          })),
+          error: null,
+        });
+      } else {
+        this.setState({ error: response.data.message || "Không thể lấy danh sách sinh viên" });
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách sinh viên:", error.response || error.message);
+      this.setState({
+        error: error.response?.data?.message || "Không thể lấy danh sách sinh viên. Vui lòng thử lại.",
+      });
+
+
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        this.props.navigate("/");
+      }
+    }
+  };
+
 
   handleMenuClick = (text) => {
     const routes = {
@@ -69,6 +160,7 @@ class DiemDanhGV extends Component {
     if (routes[text]) this.props.navigate(routes[text]);
   };
 
+
   handleStatusChange = (id, value) => {
     this.setState((prevState) => ({
       students: prevState.students.map((student) =>
@@ -77,57 +169,130 @@ class DiemDanhGV extends Component {
     }));
   };
 
+
   handleGenerateQRCode = async () => {
-    const { selectedClass } = this.state;
-    if (!selectedClass) {
-      alert("Vui lòng chọn lớp học phần trước khi tạo mã QR.");
+    const { selectedBuoiHoc } = this.state;
+    console.log("selectedBuoiHoc:", selectedBuoiHoc);
+
+
+    if (!selectedBuoiHoc || selectedBuoiHoc === "") {
+      this.setState({ error: "Vui lòng chọn buổi học trước khi tạo mã QR." });
       return;
     }
 
-    this.setState({ isLoadingQRCode: true, qrCodeData: null });
+
+    this.setState({ isLoadingQRCode: true, qrCodeData: null, error: null });
+
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      this.setState({ error: "Bạn cần đăng nhập lại để tiếp tục" });
+      this.props.navigate("/");
+      return;
+    }
+
 
     try {
-      const response = await axios.get(
-        `https://webdiemdanh-1.onrender.com/api/diemdanh/tao-qrcode/${selectedClass}`,
-        { headers: { Accept: "image/svg+xml" } }
+      const response = await axios.post(
+        "https://webdiemdanh-1.onrender.com/api/diemdanh/taomaqr",
+        {
+          id_buoihoc: Number(selectedBuoiHoc),
+        },
+        {
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        }
       );
-      this.setState({ qrCodeData: response.data, openQRCodeDialog: true });
+
+
+      console.log("API Response:", response.data);
+
+
+      if (response.data.status === "success" && response.data.qr_url) {
+        console.log("qrCodeData set to:", response.data.qr_url);
+        this.setState({
+          qrCodeData: response.data.qr_url,
+          openQRCodeDialog: true,
+          error: null,
+        });
+      } else {
+        this.setState({
+          error: response.data.message || "Không thể tạo mã QR",
+          openQRCodeDialog: true,
+        });
+      }
     } catch (error) {
-      console.error("Lỗi tạo mã QR:", error);
-      alert("Không thể tạo mã QR. Vui lòng thử lại.");
+      console.error("Lỗi tạo mã QR:", error.response || error.message);
+      this.setState({
+        error: error.response?.data?.message || "Không thể tạo mã QR. Vui lòng thử lại.",
+        openQRCodeDialog: true,
+      });
+
+
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        this.props.navigate("/");
+      }
     } finally {
       this.setState({ isLoadingQRCode: false });
     }
   };
 
+
   handleOpenQRCodeDialog = () => {
     this.setState({ openQRCodeDialog: true });
   };
 
+
   handleCloseQRCodeDialog = () => {
-    this.setState({ openQRCodeDialog: false });
+    this.setState({ openQRCodeDialog: false, qrCodeData: null, error: null });
   };
+
+
+  handleBuoiHocChange = (e) => {
+    const selectedBuoiHoc = e.target.value;
+    const buoiHoc = this.state.buoiHocList.find((bh) => bh.id_buoihoc === selectedBuoiHoc);
+    this.setState(
+      {
+        selectedBuoiHoc,
+        attendanceDate: buoiHoc ? buoiHoc.ngayhoc : this.state.attendanceDate,
+      },
+      () => {
+        if (buoiHoc) {
+          this.fetchSinhVien(buoiHoc.id_lophoc);
+        } else {
+          this.setState({ students: [] });
+        }
+      }
+    );
+  };
+
 
   render() {
     const {
       semester,
       attendanceDate,
-      selectedClass,
+      selectedBuoiHoc,
+      buoiHocList,
       students,
       qrCodeData,
       isLoadingQRCode,
       openQRCodeDialog,
+      error,
     } = this.state;
+
 
     const menuItems = [
       { text: "Homepage", icon: <HomeIcon fontSize="large" /> },
       { text: "Thông Tin Giảng Viên", icon: <PersonIcon fontSize="large" /> },
       { text: "Lịch giảng dạy", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Điểm Danh", icon: <QrCodeIcon fontSize="large" /> },
-      { text: "Xem Kết Quả Điểm Danh", icon: <AssignmentIcon fontSize="large" /> },
-      { text: "Tra cứu Sinh Viên", icon: <QrCodeScannerIcon fontSize="large" /> },
+
       { text: "Đăng Xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
+
 
     return (
       <Box display="flex" height="110vh" bgcolor="#f4f6f8">
@@ -153,11 +318,20 @@ class DiemDanhGV extends Component {
           </List>
         </Box>
 
+
         {/* Main Content */}
         <Container sx={{ flex: 1, py: 4 }}>
           <Typography variant="h5" fontWeight={600} mb={2}>
             Điểm Danh
           </Typography>
+
+
+          {error && !openQRCodeDialog && (
+            <Typography color="error" mb={2}>
+              {error}
+            </Typography>
+          )}
+
 
           {/* Filters */}
           <Stack direction="row" spacing={2} mb={2}>
@@ -178,16 +352,22 @@ class DiemDanhGV extends Component {
             <FormControl fullWidth>
               <InputLabel>Chọn lớp học phần</InputLabel>
               <Select
-                value={selectedClass}
-                onChange={(e) => this.setState({ selectedClass: e.target.value })}
+                value={selectedBuoiHoc}
+                onChange={this.handleBuoiHocChange}
                 label="Chọn lớp học phần"
               >
-                <MenuItem value="1">XDPMW nhóm 1 tiết 1-5</MenuItem>
-                <MenuItem value="2">XDPMW nhóm 2 tiết 1-5</MenuItem>
-                <MenuItem value="3">XDPMW nhóm 4 tiết 1-5</MenuItem>
+                <MenuItem value="">
+                  <em>Chọn buổi học</em>
+                </MenuItem>
+                {buoiHocList.map((buoiHoc) => (
+                  <MenuItem key={buoiHoc.id_buoihoc} value={buoiHoc.id_buoihoc}>
+                    {buoiHoc.display_name}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Stack>
+
 
           {/* Action Buttons */}
           <Stack direction="row" spacing={2} mb={2}>
@@ -202,7 +382,9 @@ class DiemDanhGV extends Component {
             </Button>
           </Stack>
 
-          {/* QR Dialog */}
+
+
+
           <Dialog
             open={openQRCodeDialog}
             onClose={this.handleCloseQRCodeDialog}
@@ -216,15 +398,24 @@ class DiemDanhGV extends Component {
               {isLoadingQRCode ? (
                 <Typography>Đang tạo mã QR...</Typography>
               ) : qrCodeData ? (
-                <div dangerouslySetInnerHTML={{ __html: qrCodeData }} />
+                <img
+                  src={qrCodeData}
+                  alt="Mã QR Điểm Danh"
+                  style={{ maxWidth: "100%", height: "auto" }}
+                  onError={(e) => {
+                    console.error("Failed to load QR image:", qrCodeData);
+                    this.setState({ error: "Không thể tải hình ảnh mã QR. URL: " + qrCodeData, qrCodeData: null });
+                  }}
+                />
               ) : (
-                <Typography>Lỗi tạo mã QR.</Typography>
+                <Typography color="error">{error || "Không thể tạo mã QR. Vui lòng thử lại."}</Typography>
               )}
               <Button onClick={this.handleCloseQRCodeDialog} sx={{ mt: 2 }} variant="contained">
                 Đóng
               </Button>
             </Box>
           </Dialog>
+
 
           {/* Table */}
           <TableContainer component={Paper}>
@@ -239,23 +430,31 @@ class DiemDanhGV extends Component {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {students.map((student, index) => (
-                  <TableRow key={student.id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>
-                      <Checkbox
-                        checked={student.status === "Có mặt"}
-                        onChange={(e) =>
-                          this.handleStatusChange(student.id, e.target.checked ? "Có mặt" : "Vắng")
-                        }
-                        color="primary"
-                      />
+                {students.length > 0 ? (
+                  students.map((student, index) => (
+                    <TableRow key={student.id}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>
+                        <Checkbox
+                          checked={student.status === "Có mặt"}
+                          onChange={(e) =>
+                            this.handleStatusChange(student.id, e.target.checked ? "Có mặt" : "Vắng")
+                          }
+                          color="primary"
+                        />
+                      </TableCell>
+                      <TableCell>{student.mssv}</TableCell>
+                      <TableCell>{student.name}</TableCell>
+                      <TableCell>{student.class}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      Chưa có sinh viên nào
                     </TableCell>
-                    <TableCell>{student.mssv}</TableCell>
-                    <TableCell>{student.name}</TableCell>
-                    <TableCell>{student.class}</TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -265,4 +464,8 @@ class DiemDanhGV extends Component {
   }
 }
 
+
 export default withNavigation(DiemDanhGV);
+
+
+

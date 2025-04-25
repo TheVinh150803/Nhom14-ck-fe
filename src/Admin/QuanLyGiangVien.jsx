@@ -1,7 +1,9 @@
 import React, { Component } from "react";
+import axios from "axios";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PersonIcon from "@mui/icons-material/Person";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
 
@@ -27,35 +29,72 @@ import {
 class QuanLyGiangVien extends Component {
   constructor(props) {
     super(props);
+    console.log("QuanLyGiangVien props:", props); // Debug props
     this.state = {
-      teachers: [
-        {
-          id: "GV01",
-          name: "Hoàng Khuê",
-          phone: "0933271900",
-          email: "dragonnet@gmail.com",
-        },
-      ],
+      teachers: [],
       selectedRows: [],
     };
   }
 
+  componentDidMount() {
+    this.fetchTeachers();
+  }
+
+  fetchTeachers = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found, please login first");
+      this.props.navigate("/AdminLogin");
+      return;
+    }
+
+    axios
+      .get("https://webdiemdanh-1.onrender.com/api/admin/giangvien", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        const teachers = response.data.map((teacher) => ({
+          id_giangvien: teacher.id_giangvien,
+          Magiangvien: teacher.Magiangvien,
+          name: teacher.name_giangvien,
+          phone: teacher.sdt_giangvien,
+          email: teacher.email_giangvien,
+          address: teacher.diachi_giangvien,
+          gender: teacher.gioitinh_giangvien,
+        }));
+        console.log("Teachers data:", teachers);
+        this.setState({ teachers });
+      })
+      .catch((error) => {
+        console.error("Error fetching teachers:", error);
+        if (error.response && error.response.status === 401) {
+          this.props.navigate("/AdminLogin");
+        }
+      });
+  };
+
   handleMenuClick = (text) => {
     if (text === "Quản lý User") {
-      this.props.navigate("/quanlysinhvien");
+      this.props.navigate("/QuanLySinhVien");
     } else if (text === "Quản lý lớp học") {
-      this.props.navigate("/quanlylophoc");
-    } else if (text === "Danh sách môn học") {
-      this.props.navigate("/danhsachmonhoc");
+      this.props.navigate("/QuanLyLopHoc");
+    } else if (text === "Quản lý lịch học") {
+      this.props.navigate("/QuanLyLichHoc");
+    } else if (text === "Quản lý Môn Học") {
+      this.props.navigate("/QuanLyMonHoc");
     }
   };
 
-  handleCheckboxChange = (id) => {
+  handleCheckboxChange = (id_giangvien) => {
+    const id = Number(id_giangvien);
     this.setState((prevState) => {
       const isSelected = prevState.selectedRows.includes(id);
       const newSelectedRows = isSelected
         ? prevState.selectedRows.filter((item) => item !== id)
-        : [...prevState.selectedRows, id];
+        : [id];
+      console.log("Selected Rows:", newSelectedRows);
       return { selectedRows: newSelectedRows };
     });
   };
@@ -66,7 +105,22 @@ class QuanLyGiangVien extends Component {
 
   handleEditTeacher = () => {
     if (this.state.selectedRows.length > 0) {
-      this.props.navigate("/ChinhSuaThongTinGiangVien");
+      console.log("Selected Row ID:", this.state.selectedRows[0]);
+      console.log("Teachers:", this.state.teachers);
+      const selectedTeacher = this.state.teachers.find(
+        (teacher) =>
+          String(teacher.id_giangvien) === String(this.state.selectedRows[0])
+      );
+      if (!selectedTeacher) {
+        alert("Không tìm thấy giảng viên được chọn.");
+        return;
+      }
+      console.log("Selected Teacher to Edit:", selectedTeacher);
+      this.props.navigate("/ChinhSuaThongTinGiangVien", {
+        state: { teacher: selectedTeacher },
+      });
+    } else {
+      alert("Vui lòng chọn một giảng viên để chỉnh sửa.");
     }
   };
 
@@ -81,14 +135,14 @@ class QuanLyGiangVien extends Component {
       { text: "Quản lý User", icon: <PersonIcon fontSize="large" /> },
       { text: "Quản lý lớp học", icon: <AssignmentIcon fontSize="large" /> },
       {
-        text: "Danh sách môn học",
+        text: "Quản lý lịch học",
         icon: <QrCodeScannerIcon fontSize="large" />,
       },
+      { text: "Quản lý Môn Học", icon: <MenuBookIcon fontSize="large" /> },
     ];
 
     return (
       <Box display="flex" height="100vh">
-        {/* Sidebar */}
         <Box width={240} bgcolor="primary.main" p={2}>
           <Box component="img" src={logo} width="100%" mb={4} />
           <List>
@@ -105,13 +159,11 @@ class QuanLyGiangVien extends Component {
           </List>
         </Box>
 
-        {/* Main Content */}
         <Container sx={{ flex: 1, p: 4 }}>
           <Typography variant="h5" fontWeight="bold" mb={3}>
             Quản lý giảng viên
           </Typography>
 
-          {/* Tabs */}
           <Box display="flex" gap={2} mb={2}>
             <Button variant="contained">Quản lý giảng viên</Button>
             <Button variant="outlined" onClick={this.handleQuanLySinhVien}>
@@ -119,12 +171,14 @@ class QuanLyGiangVien extends Component {
             </Button>
           </Box>
 
-          {/* Table */}
-          <TableContainer component={Paper} sx={{ maxWidth: 900 }}>
+          <TableContainer component={Paper} sx={{ maxWidth: 1200 }}>
             <Table>
               <TableHead sx={{ backgroundColor: "#ccc" }}>
                 <TableRow>
                   <TableCell />
+                  <TableCell>
+                    <b>ID Giảng viên</b>
+                  </TableCell>
                   <TableCell>
                     <b>Mã giảng viên</b>
                   </TableCell>
@@ -137,6 +191,12 @@ class QuanLyGiangVien extends Component {
                   <TableCell>
                     <b>Email</b>
                   </TableCell>
+                  <TableCell>
+                    <b>Địa chỉ</b>
+                  </TableCell>
+                  <TableCell>
+                    <b>Giới tính</b>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -144,21 +204,23 @@ class QuanLyGiangVien extends Component {
                   <TableRow key={index}>
                     <TableCell padding="checkbox">
                       <Checkbox
-                        checked={selectedRows.includes(teacher.id)}
-                        onChange={() => this.handleCheckboxChange(teacher.id)}
+                        checked={selectedRows.includes(teacher.id_giangvien)}
+                        onChange={() => this.handleCheckboxChange(teacher.id_giangvien)}
                       />
                     </TableCell>
-                    <TableCell>{teacher.id}</TableCell>
+                    <TableCell>{teacher.id_giangvien}</TableCell>
+                    <TableCell>{teacher.Magiangvien}</TableCell>
                     <TableCell>{teacher.name}</TableCell>
                     <TableCell>{teacher.phone}</TableCell>
                     <TableCell>{teacher.email}</TableCell>
+                    <TableCell>{teacher.address}</TableCell>
+                    <TableCell>{teacher.gender}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
 
-          {/* Action buttons */}
           <Box mt={3} display="flex" gap={2}>
             <Button
               variant="contained"
@@ -174,7 +236,7 @@ class QuanLyGiangVien extends Component {
               disabled={selectedRows.length === 0}
               onClick={this.handleEditTeacher}
             >
-              Thay đổi
+              Chỉnh Sửa
             </Button>
           </Box>
         </Container>

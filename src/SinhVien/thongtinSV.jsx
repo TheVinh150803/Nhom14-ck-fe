@@ -6,6 +6,8 @@ import QrCodeIcon from "@mui/icons-material/QrCode";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
+import LogoutIcon from "@mui/icons-material/Logout";
+
 import {
   Box,
   Button,
@@ -44,9 +46,9 @@ class ThongTinCaNhan extends Component {
       this.setState({
         studentId: sinhVien.mssv || "",
         fullName: sinhVien.name_sinhvien || "",
-        className: sinhVien.name_lop || "",
-        birthDate: sinhVien.ngay_sinh || "",
-        gender: sinhVien.gioi_tinh || "",
+        className: sinhVien.lop_sinhvien || "",
+        birthDate: sinhVien.ngaysinh_sinhvien || "",
+        gender: sinhVien.gioitinh_sinhvien || "",
         address: sinhVien.diachi_sinhvien || "",
         email: sinhVien.email_sinhvien || "",
         phone: sinhVien.sdt_sinhvien || "",
@@ -73,6 +75,8 @@ class ThongTinCaNhan extends Component {
     } else if (text === "Kết quả điểm danh") {
       console.log("Kết quả điểm danh clicked");
       this.props.navigate("/ketquadiemdanh");
+    }else if (text === "Đăng xuất") {
+      this.handleLogout();
     }
   };
 
@@ -90,7 +94,7 @@ class ThongTinCaNhan extends Component {
 
         // Gửi yêu cầu cập nhật thông tin lên API
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/update-profile",
+          "https://webdiemdanh-1.onrender.com/api/capnhatSV",
           {
             diachi_sinhvien: this.state.address,
             sdt_sinhvien: this.state.phone,
@@ -178,7 +182,8 @@ class ThongTinCaNhan extends Component {
       { text: "Thời khóa biểu", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
-      { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
+    
+       { text: "Đăng xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
     return (
@@ -237,9 +242,7 @@ class ThongTinCaNhan extends Component {
             >
               {this.state.isEditing ? "Lưu" : "Sửa"}
             </Button>
-            <Button variant="contained" color="error" onClick={this.handleLogout}>
-              Đăng xuất
-            </Button>
+        
           </Box>
         </Container>
       </Box>

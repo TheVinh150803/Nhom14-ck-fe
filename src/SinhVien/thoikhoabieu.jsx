@@ -1,10 +1,28 @@
 import React, { Component } from "react";
-import { Box, Container, Divider, List, ListItem, ListItemIcon, ListItemText, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Paper } from "@mui/material";
+import {
+  Box,
+  Container,
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  Paper,
+} from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import QrCodeIcon from "@mui/icons-material/QrCode";
-import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import LogoutIcon from "@mui/icons-material/Logout";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
 import axios from "axios";
@@ -44,10 +62,10 @@ class ThoiKhoaBieu extends Component {
         return;
       }
 
-      const response = await axios.get("http://127.0.0.1:8000/api/thoikhoabieu", {
+      const response = await axios.get("https://webdiemdanh-1.onrender.com/api/thoikhoabieu", {
         headers: {
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
         },
         params: {
           hocky: this.state.selectedSemester,
@@ -55,7 +73,7 @@ class ThoiKhoaBieu extends Component {
       });
 
       if (response.data.status === "success") {
-        const scheduleData = response.data.data.map(item => ({
+        const scheduleData = response.data.data.map((item) => ({
           id: item.ma_mon_hoc,
           subject: item.ten_mon_hoc,
           namhoc: item.nhom_mon_hoc,
@@ -77,7 +95,9 @@ class ThoiKhoaBieu extends Component {
     } catch (error) {
       console.error("Lỗi khi gọi API:", error.response || error.message);
       this.setState({
-        error: error.response?.data?.message || "Không thể lấy dữ liệu thời khóa biểu. Vui lòng thử lại.",
+        error:
+          error.response?.data?.message ||
+          "Không thể lấy dữ liệu thời khóa biểu. Vui lòng thử lại.",
         loading: false,
       });
 
@@ -96,21 +116,26 @@ class ThoiKhoaBieu extends Component {
     });
   };
 
+  handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("sinhVien");
+    this.props.navigate("/");
+  };
+
   handleMenuClick = (text) => {
-    if (text === "Quét Mã điểm danh") {
-      console.log("Quét Mã điểm danh clicked");
-      this.props.navigate("/quetmaqr");
-    } else if (text === "Thông tin cá nhân") {
-      console.log("Thông tin cá nhân clicked");
+    if (text === "Thông tin cá nhân") {
       this.props.navigate("/thongtinSV");
     } else if (text === "Thời khóa biểu") {
-      console.log("Thời khóa biểu clicked");
       this.props.navigate("/thoikhoabieu");
     } else if (text === "Kết quả điểm danh") {
-      console.log("Kết quả điểm danh clicked");
       this.props.navigate("/ketquadiemdanh");
+    } else if (text === "Quét Mã điểm danh") {
+      this.props.navigate("/quetmaqr");
+    } else if (text === "Đăng xuất") {
+      this.handleLogout();
     }
   };
+  
 
   render() {
     const menuItems = [
@@ -118,11 +143,12 @@ class ThoiKhoaBieu extends Component {
       { text: "Thời khóa biểu", icon: <CalendarMonthIcon fontSize="large" /> },
       { text: "Kết quả điểm danh", icon: <AssignmentIcon fontSize="large" /> },
       { text: "Quét Mã điểm danh", icon: <QrCodeIcon fontSize="large" /> },
-      { text: "QR điểm danh", icon: <QrCodeScannerIcon fontSize="large" /> },
+      { text: "Đăng xuất", icon: <LogoutIcon fontSize="large" /> },
     ];
 
     return (
       <Box display="flex" height="100vh">
+        {/* Sidebar */}
         <Box width={240} bgcolor="primary.main" p={2} color="white">
           <Box component="img" src={logo} width="100%" mb={4} />
           <List>
@@ -135,6 +161,7 @@ class ThoiKhoaBieu extends Component {
           </List>
         </Box>
 
+        {/* Main content */}
         <Container sx={{ flex: 1, p: 4 }}>
           <Typography variant="h4" textAlign="center" mb={2}>
             Thời Khóa Biểu Cá Nhân
@@ -152,7 +179,11 @@ class ThoiKhoaBieu extends Component {
           ) : (
             <>
               <Box mb={3}>
-                <Select value={this.state.selectedSemester} onChange={this.handleSemesterChange} fullWidth>
+                <Select
+                  value={this.state.selectedSemester}
+                  onChange={this.handleSemesterChange}
+                  fullWidth
+                >
                   <MenuItem value="HK1">Học kỳ 1</MenuItem>
                   <MenuItem value="HK2">Học kỳ 2</MenuItem>
                 </Select>

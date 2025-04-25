@@ -1,55 +1,29 @@
 import React, { Component } from "react";
-import {
-  Box,
-  Button,
-  Container,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-  InputLabel,
-  FormControl,
-} from "@mui/material";
+import axios from "axios";
+import { Box, Button, Container, TextField, Typography } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import logo from "../img/logo.jpg";
 import withNavigation from "./withNavigation";
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 
 class ThemThongTinGiangVien extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedTeacher: "",
       teacherInfo: {
         id: "",
         name: "",
         phone: "",
         email: "",
-        username: "",
         password: "",
+        address: "", // Thêm địa chỉ
+        gender: "",  // Thêm giới tính
       },
-      teachers: [
-        {
-          id: "GV01",
-          name: "Giảng viên 1",
-          phone: "0933271900",
-          email: "gv1@gmail.com",
-          username: "gv1",
-          password: "123456",
-        },
-      ],
     };
   }
-
-  handleSelectChange = (event) => {
-    const selectedName = event.target.value;
-    const teacher = this.state.teachers.find((t) => t.name === selectedName);
-    this.setState({
-      selectedTeacher: selectedName,
-      teacherInfo: teacher || {},
-    });
-  };
 
   handleInputChange = (field) => (event) => {
     this.setState({
@@ -61,30 +35,79 @@ class ThemThongTinGiangVien extends Component {
   };
 
   handleMenuClick = (text) => {
-    if (text === "Quản lý lớp học") {
-      this.props.navigate("/QuanLyLopHoc");
-    } else if (text === "Danh sách môn học") {
-      this.props.navigate("/DanhSachMonHoc");
-    } else if (text === "Quản lý User") {
-      this.props.navigate("/QuanLyGiangVien");
+    if (text === "Quản lý User") {
+      this.props.navigate("/quanlysinhvien");
+    } else if (text === "Quản lý lớp học") {
+      this.props.navigate("/quanlylophoc");
+    } else if (text === "Quản lý lịch học") {
+      this.props.navigate("/QuanLyLichHoc");
+    } else if (text === "Quản lý Môn Học") {
+      this.props.navigate("/quanlymonhoc");
     }
   };
 
   handleSubmit = () => {
-    // TODO: Xử lý thêm giảng viên ở đây nếu cần
+    const { teacherInfo } = this.state;
+    const id_admin = localStorage.getItem("id_admin");
+    const token = localStorage.getItem("token");
+  
+    console.log("Token:", token); // Kiểm tra token
+    console.log("Dữ liệu gửi đi:", {
+      Magiangvien: teacherInfo.id,
+      name_giangvien: teacherInfo.name,
+      email_giangvien: teacherInfo.email,
+      sdt_giangvien: teacherInfo.phone,
+      password_giangvien: teacherInfo.password,
+      diachi_giangvien: teacherInfo.address,
+      gioitinh_giangvien: teacherInfo.gender,
+      id_admin: id_admin,
+    });
+  
+    axios
+      .post(
+        "https://webdiemdanh-1.onrender.com/api/admin/themgiangvien",
+        {
+          Magiangvien: teacherInfo.id,
+          name_giangvien: teacherInfo.name,
+          email_giangvien: teacherInfo.email,
+          sdt_giangvien: teacherInfo.phone,
+          password_giangvien: teacherInfo.password,
+          diachi_giangvien: teacherInfo.address,
+          gioitinh_giangvien: teacherInfo.gender,
+          id_admin: id_admin,
+        },
+        {
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Bearer ${token}`, // Gửi token trong header
+          },
+        }
+      )
+      .then((response) => {
+        console.log("Thêm giảng viên thành công:", response.data);
+        this.props.navigate("/QuanLyGiangVien");
+      })
+      .catch((error) => {
+        console.error("Lỗi khi thêm giảng viên:", error.response?.data || error);
+        alert("Thêm giảng viên thất bại. Vui lòng kiểm tra lại thông tin.");
+      });
+  };
+
+  handleBack = () => {
     this.props.navigate("/QuanLyGiangVien");
   };
 
   render() {
-    const { teacherInfo, selectedTeacher, teachers } = this.state;
+    const { teacherInfo } = this.state;
 
     const menuItems = [
       { text: "Quản lý User", icon: <PersonIcon fontSize="large" /> },
       { text: "Quản lý lớp học", icon: <AssignmentIcon fontSize="large" /> },
       {
-        text: "Danh sách môn học",
+        text: "Quản lý lịch học",
         icon: <QrCodeScannerIcon fontSize="large" />,
       },
+      { text: "Quản lý Môn Học", icon: <MenuBookIcon fontSize="large" /> },
     ];
 
     return (
@@ -123,20 +146,12 @@ class ThemThongTinGiangVien extends Component {
               onChange={this.handleInputChange("id")}
               fullWidth
             />
-            <FormControl fullWidth>
-              <InputLabel>Tên giảng viên</InputLabel>
-              <Select
-                value={selectedTeacher}
-                label="Tên giảng viên"
-                onChange={this.handleSelectChange}
-              >
-                {teachers.map((teacher, index) => (
-                  <MenuItem key={index} value={teacher.name}>
-                    {teacher.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <TextField
+              label="Tên giảng viên"
+              value={teacherInfo.name}
+              onChange={this.handleInputChange("name")}
+              fullWidth
+            />
             <TextField
               label="Số điện thoại"
               value={teacherInfo.phone}
@@ -149,12 +164,22 @@ class ThemThongTinGiangVien extends Component {
               onChange={this.handleInputChange("email")}
               fullWidth
             />
-            <TextField
-              label="Tài khoản"
-              value={teacherInfo.username}
-              onChange={this.handleInputChange("username")}
+             <TextField
+              label="Địa chỉ"
+              value={teacherInfo.address}
+              onChange={this.handleInputChange("address")}
               fullWidth
             />
+            <FormControl fullWidth>
+            <InputLabel>Giới tính</InputLabel>
+            <Select
+              value={teacherInfo.gender}
+              onChange={this.handleInputChange("gender")}
+            >
+              <MenuItem value="Nam">Nam</MenuItem>
+              <MenuItem value="Nữ">Nữ</MenuItem>
+            </Select>
+          </FormControl>
             <TextField
               label="Mật khẩu"
               type="password"
@@ -170,7 +195,14 @@ class ThemThongTinGiangVien extends Component {
               color="primary"
               onClick={this.handleSubmit}
             >
-              Thay đổi
+              Lưu thông tin
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={this.handleBack}
+            >
+              Quay lại
             </Button>
           </Box>
         </Container>
