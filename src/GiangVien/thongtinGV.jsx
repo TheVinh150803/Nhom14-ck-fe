@@ -47,7 +47,7 @@ class ThongTinCaNhanGiangvien extends Component {
     const token = localStorage.getItem("token");
     if (token) {
       axios
-        .get("http://localhost:8000/api/giangvien/ttgv", {
+        .get("https://webdiemdanh-1.onrender.com/api/giangvien/ttgv", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -77,7 +77,7 @@ class ThongTinCaNhanGiangvien extends Component {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        await axios.post("http://localhost:8000/api/giangvien/dangxuat",
+        await axios.post("https://webdiemdanh-1.onrender.com/api/giangvien/dangxuat",
           {},
           {
             headers: {

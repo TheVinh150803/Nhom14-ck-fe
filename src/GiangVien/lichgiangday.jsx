@@ -47,7 +47,7 @@ class LichGiangDayGV extends Component {
     const token = localStorage.getItem("token");
     if (token) {
       axios
-        .get("http://localhost:8000/api/giangvien/lichgiangday", {
+        .get("https://webdiemdanh-1.onrender.com/api/giangvien/lichgiangday", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
